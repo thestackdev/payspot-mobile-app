@@ -1,11 +1,12 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import axios from 'axios';
 import {useState} from 'react';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import {Button, Checkbox, Text, useTheme} from 'react-native-paper';
-import RdServices from 'react-native-rd-services';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {RootStackParamList} from '../../types';
+
+const {RDServices} = NativeModules;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Authenticate'>;
 
@@ -30,11 +31,8 @@ export default function Authenticate({navigation, route}: Props) {
   async function captureFingerPrint() {
     try {
       setLoading(true);
-      let pidOption =
-        "<?xml version='1.0'?><PidOptions ver='1.0'><Opts fCount='1' fType='2' iCount='0' pCount='0' format='0' pidVer='2.0' timeout='10000' posh='UNKNOWN' env='P' /><CustOpts></CustOpts></PidOptions>";
-      const captureResponse = await RdServices.getFingerPrint(
+      const captureResponse = await RDServices.getFingerPrint(
         'com.mantra.rdservice',
-        pidOption,
       );
 
       if (captureResponse.status === 'SUCCESS') {

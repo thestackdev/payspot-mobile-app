@@ -7,10 +7,11 @@ import Authenticate from './src/screens/Authenticate';
 import HomeScreen from './src/screens/Home';
 import Transactions from './src/screens/Transaction';
 import theme from './src/theme';
+import codePush from 'react-native-code-push';
 
 const Stack = createNativeStackNavigator();
 
-export default function App() {
+function App() {
   return (
     <PaperProvider theme={theme}>
       <NavigationContainer>
@@ -39,3 +40,5 @@ export default function App() {
     </PaperProvider>
   );
 }
+
+export default codePush(App);

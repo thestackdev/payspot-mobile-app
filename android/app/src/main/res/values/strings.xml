@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">payspot</string>
+    <string moduleConfig="true" name="CodePushDeploymentKey">Q8YCujtulcYtV3_f2_WgJezQJ6ms_-VP4DHfr</string>
 </resources>

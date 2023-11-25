@@ -6,6 +6,8 @@ import React, {useEffect, useRef, useState} from 'react';
 import {BackHandler, StatusBar, StyleSheet, View} from 'react-native';
 import {WebView, WebViewNavigation} from 'react-native-webview';
 import {RootStackParamList} from '../../types';
+import Spinner from '../components/Spinner';
+import {requestLocationPermission} from '../utils/permissions';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -13,6 +15,7 @@ export default function HomeScreen({navigation, route}: Props) {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const focued = useIsFocused();
+  const [loading, setLoading] = useState(true);
 
   const captureUrl = /step=(\d+)&part=(\d+)&session=([A-Za-z0-9]+)/;
   const transactionsPattern = /step=(\d+)&session=([A-Za-z0-9]+)/;
@@ -82,12 +85,13 @@ export default function HomeScreen({navigation, route}: Props) {
     }
   };
 
+  async function requestPermissions() {
+    await requestLocationPermission();
+    setLoading(false);
+  }
+
   useEffect(() => {
-    (async () => {
-      Geolocation.getCurrentPosition(info => {
-        // console.log(info)
-      });
-    })();
+    requestPermissions();
   }, []);
 
   let text = 'Waiting..';
@@ -96,6 +100,8 @@ export default function HomeScreen({navigation, route}: Props) {
   } else if (location) {
     text = JSON.stringify(location);
   }
+
+  if (loading) return <Spinner />;
 
   return (
     <View style={styles.container}>
