@@ -1,60 +1,75 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import axios from 'axios';
 import {useState} from 'react';
-import {NativeModules, View} from 'react-native';
+import {Alert, NativeModules, View} from 'react-native';
 import {Button, Checkbox, Text, useTheme} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {RootStackParamList} from '../../types';
+import useSessionStore from '../store/useSessionStore';
+import Geolocation from '@react-native-community/geolocation';
+import useMerchantStore from '../store/useMerchantStore';
 
 const {RDServices} = NativeModules;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Authenticate'>;
 
-export default function Authenticate({navigation, route}: Props) {
-  const {part, session, step} = route.params;
-
+export default function Authenticate({navigation}: Props) {
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
-
-  function getService() {
-    switch (part) {
-      case '1':
-        return 'aeps_registration';
-      case '2':
-        return 'aeps_authentication';
-      default:
-        break;
-    }
-  }
+  const session = useSessionStore(state => state.session);
+  const {merchant} = useMerchantStore(state => state);
 
   async function captureFingerPrint() {
     try {
       setLoading(true);
-      const captureResponse = await RDServices.getFingerPrint(
-        'com.mantra.rdservice',
+      await Geolocation.getCurrentPosition(
+        async position => {
+          const captureResponse = await RDServices.getFingerPrint(
+            'com.mantra.rdservice',
+          );
+
+          if (captureResponse.status === 'SUCCESS') {
+            console.log('Capture Response', captureResponse);
+
+            const data = new FormData();
+
+            data.append('payspot_session', session);
+            data.append('latitude', position.coords.latitude.toString());
+            data.append('longitude', position.coords.longitude.toString());
+            data.append('responseXML', captureResponse.message);
+
+            const response = await axios.post(
+              'https://payspot.co.in/credopay/merchant_authentication2',
+              data,
+              {
+                headers: {
+                  Cookie: `payspot_session=${session}`,
+                },
+              },
+            );
+
+            if (response.data.response_code === '00') {
+              navigation.push('Transactions');
+            } else {
+              Alert.alert('Error', 'Unable to authenticate. Please try again.');
+            }
+          } else {
+            Alert.alert(
+              'Error',
+              'Unable to capture finger print. Please try again.',
+            );
+          }
+        },
+        error => {
+          throw new Error(
+            'Unable to get location. Please enable location services and try again.',
+          );
+        },
+        {enableHighAccuracy: true},
       );
-
-      if (captureResponse.status === 'SUCCESS') {
-        const data = new FormData();
-        data.append('payspot_session', session);
-        data.append('service', getService());
-        data.append('status', 1);
-        // data.append('fp', captureResponse.data);
-
-        const response = await axios.post(
-          'https://payspot.co.in/api/aeps_api',
-          data,
-        );
-
-        navigation.push('Transactions', {
-          part: part,
-          session: session,
-          step: step,
-        });
-      }
     } catch (error) {
-      console.log(error);
+      console.log(JSON.stringify(error));
     } finally {
       setLoading(false);
     }
@@ -69,19 +84,26 @@ export default function Authenticate({navigation, route}: Props) {
         backgroundColor: 'white',
         padding: 20,
       }}>
-      {step === '1' ? (
-        <Text
-          variant="bodyLarge"
-          style={{
-            color: 'black',
-          }}>
-          Merchant - Biometric Registration
-        </Text>
-      ) : (
+      <View
+        style={{
+          alignItems: 'center',
+          width: '100%',
+        }}>
         <Text style={{color: 'black'}} variant="titleLarge">
           Merchant - Biometric Authentication
         </Text>
-      )}
+        <View
+          style={{
+            alignItems: 'center',
+            width: '100%',
+            borderWidth: 1,
+            borderColor: '#ccc',
+            marginTop: 10,
+            padding: 10,
+          }}>
+          <Text style={{}}>{merchant?.masked_aadhar}</Text>
+        </View>
+      </View>
       <Icon
         name="finger-print-outline"
         size={160}

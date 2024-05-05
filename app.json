@@ -1,4 +1,11 @@
 {
   "name": "payspot",
-  "displayName": "payspot"
+  "displayName": "payspot",
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "09580df8-eeb6-4c04-9ca7-63359e6b2e98"
+      }
+    }
+  }
 }
