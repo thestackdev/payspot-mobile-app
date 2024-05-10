@@ -1,13 +1,21 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import axios from 'axios';
 import {useState} from 'react';
-import {Alert, NativeModules, View} from 'react-native';
-import {Button, Checkbox, Text, useTheme} from 'react-native-paper';
+import {NativeModules, View} from 'react-native';
+import {
+  Button,
+  Checkbox,
+  RadioButton,
+  Text,
+  useTheme,
+} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {RootStackParamList} from '../../types';
 import useSessionStore from '../store/useSessionStore';
 import Geolocation from '@react-native-community/geolocation';
 import useMerchantStore from '../store/useMerchantStore';
+import useModalStoreStore from '../store/useModalStore';
+const devices = ['Mantra', 'Morpho'];
 
 const {RDServices} = NativeModules;
 
@@ -19,19 +27,22 @@ export default function Authenticate({navigation}: Props) {
   const [checked, setChecked] = useState(false);
   const session = useSessionStore(state => state.session);
   const {merchant} = useMerchantStore(state => state);
+  const [selectedDevice, setSelectedDevice] = useState(devices[0]);
+
+  const {setErrorMessage, setShowErrorModal} = useModalStoreStore(
+    state => state,
+  );
 
   async function captureFingerPrint() {
-    try {
-      setLoading(true);
-      await Geolocation.getCurrentPosition(
-        async position => {
-          const captureResponse = await RDServices.getFingerPrint(
-            'com.mantra.rdservice',
-          );
+    Geolocation.getCurrentPosition(
+      async position => {
+        setLoading(true);
+        const captureResponse = await RDServices.getFingerPrint(
+          'com.mantra.rdservice',
+        );
 
-          if (captureResponse.status === 'SUCCESS') {
-            console.log('Capture Response', captureResponse);
-
+        if (captureResponse.status === 'SUCCESS') {
+          try {
             const data = new FormData();
 
             data.append('payspot_session', session);
@@ -42,37 +53,44 @@ export default function Authenticate({navigation}: Props) {
             const response = await axios.post(
               'https://payspot.co.in/credopay/merchant_authentication2',
               data,
-              {
-                headers: {
-                  Cookie: `payspot_session=${session}`,
-                },
-              },
+              {headers: {Cookie: `payspot_session=${session}`}},
             );
 
             if (response.data.response_code === '00') {
               navigation.push('Transactions');
             } else {
-              Alert.alert('Error', 'Unable to authenticate. Please try again.');
+              setShowErrorModal(true);
+              setErrorMessage({
+                title: 'Authentication Failed',
+                message: 'Response Code: ' + response.data.response_code,
+              });
             }
-          } else {
-            Alert.alert(
-              'Error',
-              'Unable to capture finger print. Please try again.',
-            );
+          } catch (error) {
+            setShowErrorModal(true);
+            setErrorMessage({
+              title: 'Authentication Failed',
+              message: JSON.stringify(error),
+            });
           }
-        },
-        error => {
-          throw new Error(
-            'Unable to get location. Please enable location services and try again.',
-          );
-        },
-        {enableHighAccuracy: true},
-      );
-    } catch (error) {
-      console.log(JSON.stringify(error));
-    } finally {
-      setLoading(false);
-    }
+        } else if (captureResponse.status === 'FAILURE') {
+          setShowErrorModal(true);
+          setErrorMessage({
+            title: 'Finger Print Capture Failed',
+            message: captureResponse.message,
+          });
+        }
+
+        setLoading(false);
+      },
+      error => {
+        setShowErrorModal(true);
+        setErrorMessage({
+          title: 'Location Permission Required',
+          message: 'Please enable location permission to continue',
+        });
+      },
+      {enableHighAccuracy: true},
+    );
   }
 
   return (
@@ -86,22 +104,63 @@ export default function Authenticate({navigation}: Props) {
       }}>
       <View
         style={{
-          alignItems: 'center',
           width: '100%',
         }}>
-        <Text style={{color: 'black'}} variant="titleLarge">
-          Merchant - Biometric Authentication
-        </Text>
         <View
           style={{
-            alignItems: 'center',
             width: '100%',
-            borderWidth: 1,
-            borderColor: '#ccc',
-            marginTop: 10,
-            padding: 10,
           }}>
-          <Text style={{}}>{merchant?.masked_aadhar}</Text>
+          <Text style={{color: 'black'}} variant="titleLarge">
+            Two Factor Authentication (2FA){'\n'}
+            Daily Login
+          </Text>
+          <Text
+            style={{
+              color: 'black',
+              marginTop: 20,
+              textAlign: 'left',
+              width: '100%',
+            }}>
+            Select your aadhar and device
+          </Text>
+          <View
+            style={{
+              width: '100%',
+              borderWidth: 1,
+              borderColor: '#ccc',
+              marginTop: 10,
+              padding: 10,
+              borderRadius: 5,
+            }}>
+            <Text>{merchant?.masked_aadhar}</Text>
+          </View>
+          <View
+            style={{
+              flexWrap: 'wrap',
+              flexDirection: 'row',
+              gap: 10,
+              alignSelf: 'flex-start',
+              marginTop: 10,
+            }}>
+            {devices.map(device => (
+              <View
+                key={device}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <RadioButton
+                  disabled={device === 'Morpho'}
+                  key={device}
+                  value={device}
+                  status={selectedDevice === device ? 'checked' : 'unchecked'}
+                  onPress={() => setSelectedDevice(device)}
+                />
+                <Text>{device}</Text>
+              </View>
+            ))}
+          </View>
         </View>
       </View>
       <Icon
@@ -114,7 +173,9 @@ export default function Authenticate({navigation}: Props) {
           style={{
             flexDirection: 'row',
             width: '100%',
-            marginLeft: -23,
+            marginLeft: -28,
+            alignItems: 'center',
+            gap: 10,
           }}>
           <Checkbox
             status={checked ? 'checked' : 'unchecked'}
@@ -123,8 +184,10 @@ export default function Authenticate({navigation}: Props) {
             }}
           />
           <Text variant="bodySmall">
-            I agree that PaySpot/Bank/UIDAI may share my details with each other
-            for the purpose of authenticating my Aadhar Number
+            I give my consent for authenticating this transaction initiated by
+            myself using my Aadhaar no. {'\n'}
+            मैं अपने आधार नंबर का उपयोग करके स्वयं द्वारा शुरू किए गए इस
+            ट्रांजैक्शन को प्रमाणित करने के लिए अपनी सहमति देता हूं।
           </Text>
         </View>
         <Button

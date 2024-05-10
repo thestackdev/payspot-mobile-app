@@ -50,8 +50,6 @@ export default function HomeScreen({navigation, route}: Props) {
   const onNavigationStateChange = async (navState: WebViewNavigation) => {
     setCanGoBack(navState.canGoBack);
     if (navState.loading === false) {
-      // const {query} = queryString.parseUrl(navState.url);
-
       if (navState.url === 'https://payspot.co.in/transact') {
         try {
           const respnse = await axios.get(

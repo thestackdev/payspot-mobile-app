@@ -1,15 +1,17 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import axios from 'axios';
 import {useState} from 'react';
-import {Alert, NativeModules, ScrollView, View} from 'react-native';
+import {Alert, NativeModules, ScrollView, StyleSheet, View} from 'react-native';
 import {Button, RadioButton, Text, TextInput} from 'react-native-paper';
 import {RootStackParamList} from '../../types';
 import userMerchantStore from '../store/useMerchantStore';
 const {RDServices} = NativeModules;
-import {Picker} from '@react-native-picker/picker';
 import Geolocation from '@react-native-community/geolocation';
 import useSessionStore from '../store/useSessionStore';
 import MaskInput from 'react-native-mask-input';
+import SelectDropdown from 'react-native-select-dropdown';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import useModalStoreStore from '../store/useModalStore';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Transactions'>;
 
@@ -24,6 +26,9 @@ export default function Transactions({navigation}: Props) {
   const session = useSessionStore(state => state.session);
   const aadharRegex = /^\d{12}$/;
   const phoneRegex = /^\d{10}$/;
+  const {setErrorMessage, setShowErrorModal} = useModalStoreStore(
+    state => state,
+  );
 
   const IN_PHONE_MASKED = [
     '+',
@@ -59,125 +64,86 @@ export default function Transactions({navigation}: Props) {
     /\d/,
   ];
 
-  async function captureFingerPrint() {
+  function valideAadhar() {
     const validAadhar = aadharRegex.test(aadhar);
-    const validPhone = phoneRegex.test(customerMobile);
 
     if (!validAadhar) {
-      return Alert.alert('Please enter a valid Aadhaar number');
+      setShowErrorModal(true);
+      setErrorMessage({
+        title: 'Invalid Aadhaar Number',
+        message: 'Please enter a valid Aadhaar number',
+      });
     }
+
+    return validAadhar;
+  }
+
+  function validePhone() {
+    const validPhone = phoneRegex.test(customerMobile);
 
     if (!validPhone) {
-      return Alert.alert('Please enter a valid mobile number');
+      setShowErrorModal(true);
+      setErrorMessage({
+        title: 'Invalid Mobile Number',
+        message: 'Please enter a valid mobile number',
+      });
     }
 
+    return validPhone;
+  }
+
+  function validateBank() {
     if (!bank) {
-      return Alert.alert('Please select a bank');
+      setShowErrorModal(true);
+      setErrorMessage({
+        title: 'Bank Not Selected',
+        message: 'Please select a bank',
+      });
     }
 
+    return bank;
+  }
+
+  function valideAmount() {
     if (amount === '0') {
-      return Alert.alert('Please enter a valid amount');
+      setShowErrorModal(true);
+      setErrorMessage({
+        title: 'Invalid Amount',
+        message: 'Please enter a valid amount',
+      });
     }
 
-    setLoading(true);
-    await Geolocation.getCurrentPosition(
-      async position => {
-        try {
-          const merchantAuthFingerPrint = await RDServices.getFingerPrint(
-            'com.mantra.rdservice',
-          );
+    return amount;
+  }
 
-          if (merchantAuthFingerPrint.status === 'SUCCESS') {
-            const data = new FormData();
+  async function cashWithdrawal() {
+    if (
+      !valideAadhar() ||
+      !validePhone() ||
+      !validateBank() ||
+      !valideAmount()
+    ) {
+      return;
+    }
 
-            data.append('latitude', position.coords.latitude.toString());
-            data.append('longitude', position.coords.longitude.toString());
-            data.append('responseXML', merchantAuthFingerPrint.message);
-
-            const merchantAuthResponse = await axios.post(
-              'https://payspot.co.in/credopay/merchant_authentication2',
-              data,
-              {
-                headers: {
-                  Cookie: `payspot_session=${session}`,
-                },
-              },
-            );
-
-            if (merchantAuthResponse.data.response_code !== '00') {
-              Alert.alert('Unable to Authenticate Merchant');
-              return;
-            }
-
-            const userAuthFingerPrint = await RDServices.getFingerPrint(
-              'com.mantra.rdservice',
-            );
-
-            if (userAuthFingerPrint.status === 'SUCCESS') {
-              const data = new FormData();
-              data.append('transactionType', paymentType);
-              data.append('amount', amount);
-              data.append(
-                'auth_reference_no',
-                merchantAuthResponse.data.auth_reference_no,
-              );
-              data.append('responseXML', userAuthFingerPrint.data);
-              data.append('aadhar_number', aadhar);
-              data.append('latitude', position.coords.latitude.toString());
-              data.append('longitude', position.coords.longitude.toString());
-              data.append('bank', bank);
-              data.append('mobile_number', customerMobile);
-
-              const response = await axios.post(
-                `https://payspot.co.in/aeps/merchant_credopay_transaction2`,
-                data,
-                {
-                  headers: {
-                    Cookie: `payspot_session=${session}`,
-                  },
-                },
-              );
-
-              Alert.alert(
-                'Transaction Successful',
-                JSON.stringify(response.data),
-              );
-            }
-          }
-        } catch (error) {
-          console.log('error', JSON.stringify(error));
-        }
-      },
-      error => {
-        throw new Error(
-          'Unable to get location. Please enable location services and try again.',
-        );
-      },
-      {enableHighAccuracy: true},
-    );
-    setLoading(false);
+    navigation.navigate('CashWithdrawal', {
+      amount: parseInt(amount),
+      aadhar,
+      mobile: customerMobile,
+      bank,
+    });
   }
 
   async function balanceenquiry() {
-    const validAadhar = aadharRegex.test(aadhar);
-    const validPhone = phoneRegex.test(customerMobile);
-
-    if (!validAadhar) {
-      return Alert.alert('Please enter a valid Aadhaar number');
+    if (!valideAadhar() || !validePhone() || !validateBank()) {
+      return;
     }
 
-    if (!validPhone) {
-      return Alert.alert('Please enter a valid mobile number');
-    }
-
-    if (!bank) {
-      return Alert.alert('Please select a bank');
-    }
-
-    setLoading(true);
-    await Geolocation.getCurrentPosition(
+    Geolocation.getCurrentPosition(
       async position => {
         try {
+          setLoading(true);
+
           const merchantAuthFingerPrint = await RDServices.getFingerPrint(
             'com.mantra.rdservice',
           );
@@ -195,56 +161,48 @@ export default function Transactions({navigation}: Props) {
             const response = await axios.post(
               `https://payspot.co.in/aeps/merchant_credopay_transaction2`,
               data,
-              {
-                headers: {
-                  Cookie: `payspot_session=${session}`,
-                },
-              },
+              {headers: {Cookie: `payspot_session=${session}`}},
             );
 
-            Alert.alert(
-              'Transaction Successful',
-              JSON.stringify(response.data),
-            );
-          } else {
-            Alert.alert(
-              'Error',
-              'Unable to capture finger print. Please try again.',
-            );
+            navigation.navigate('BalanceEnquiry', {
+              data: response.data,
+            });
+          } else if (merchantAuthFingerPrint.status === 'FAILURE') {
+            setLoading(false);
+            setShowErrorModal(true);
+            setErrorMessage({
+              title: 'Failed to capture fingerprint',
+              message: merchantAuthFingerPrint.message,
+            });
           }
         } catch (error) {
-          console.log('error');
+          setShowErrorModal(true);
+          setErrorMessage({
+            title: 'Internal Server Error',
+            message: 'Please try again later',
+          });
         }
+        setLoading(false);
       },
       error => {
-        throw new Error(
-          'Unable to get location. Please enable location services and try again.',
-        );
+        setShowErrorModal(true);
+        setErrorMessage({
+          title: 'Location Permission Required',
+          message: 'Please enable location permission to continue',
+        });
       },
       {enableHighAccuracy: true},
     );
-    setLoading(false);
   }
 
   async function ministatement() {
-    const validAadhar = aadharRegex.test(aadhar);
-    const validPhone = phoneRegex.test(customerMobile);
-
-    if (!validAadhar) {
-      return Alert.alert('Please enter a valid Aadhaar number');
+    if (!valideAadhar() || !validePhone() || !validateBank()) {
+      return;
     }
 
-    if (!validPhone) {
-      return Alert.alert('Please enter a valid mobile number');
-    }
-
-    if (!bank) {
-      return Alert.alert('Please select a bank');
-    }
-
-    setLoading(true);
-    await Geolocation.getCurrentPosition(
+    Geolocation.getCurrentPosition(
       async position => {
+        setLoading(true);
         try {
           const merchantAuthFingerPrint = await RDServices.getFingerPrint(
             'com.mantra.rdservice',
@@ -263,40 +221,43 @@ export default function Transactions({navigation}: Props) {
             const response = await axios.post(
               `https://payspot.co.in/aeps/merchant_credopay_transaction2`,
               data,
-              {
-                headers: {
-                  Cookie: `payspot_session=${session}`,
-                },
-              },
+              {headers: {Cookie: `payspot_session=${session}`}},
             );
 
-            Alert.alert(
-              'Transaction Successful',
-              JSON.stringify(response.data),
-            );
-          } else {
-            Alert.alert(
-              'Error',
-              'Unable to capture finger print. Please try again.',
-            );
+            navigation.navigate('MiniStatement', {
+              data: response.data,
+            });
+          } else if (merchantAuthFingerPrint.status === 'FAILURE') {
+            setLoading(false);
+            setShowErrorModal(true);
+            setErrorMessage({
+              title: 'Failed to capture fingerprint',
+              message: merchantAuthFingerPrint.message,
+            });
           }
         } catch (error) {
-          console.log('error');
+          setShowErrorModal(true);
+          setErrorMessage({
+            title: 'Internal Server Error',
+            message: 'Please try again later',
+          });
         }
+        setLoading(false);
       },
       error => {
-        throw new Error(
-          'Unable to get location. Please enable location services and try again.',
-        );
+        setShowErrorModal(true);
+        setErrorMessage({
+          title: 'Location Permission Required',
+          message: 'Please enable location permission to continue',
+        });
       },
       {enableHighAccuracy: true},
     );
-    setLoading(false);
   }
 
   function submit() {
     if (paymentType === 'cashwithdrawal') {
-      captureFingerPrint();
+      cashWithdrawal();
     } else if (paymentType === 'balanceenquiry') {
       balanceenquiry();
     } else if (paymentType === 'ministatement') {
@@ -372,6 +333,7 @@ export default function Transactions({navigation}: Props) {
             onChangeText={(masked, unmasked) => {
               setAadhar(unmasked);
             }}
+            placeholder="XXXX XXXX XXXX"
             style={{
               width: '100%',
               marginTop: 12,
@@ -396,6 +358,7 @@ export default function Transactions({navigation}: Props) {
             onChangeText={(masked, unmasked) => {
               setCustomerMobile(unmasked);
             }}
+            placeholder="+91 XXXXXXXXX"
             style={{
               width: '100%',
               marginTop: 12,
@@ -422,21 +385,57 @@ export default function Transactions({navigation}: Props) {
               borderWidth: 0.7,
               borderRadius: 4,
             }}>
-            <Picker
-              selectedValue={bank}
-              onValueChange={(itemValue, itemIndex) => setBank(itemValue)}>
-              {banksList?.map(bank => (
-                <Picker.Item
-                  key={bank.id}
-                  style={{
-                    color: 'black',
-                    backgroundColor: 'white',
-                  }}
-                  label={bank.bankName}
-                  value={bank.id}
-                />
-              ))}
-            </Picker>
+            <SelectDropdown
+              // @ts-ignore
+              data={banksList?.map(bank => ({
+                id: bank.id,
+                title: bank.bankName,
+                icon: 'bank',
+              }))}
+              onSelect={(selectedItem, index) => {
+                setBank(selectedItem.id);
+              }}
+              search={true}
+              renderButton={(selectedItem, isOpened) => {
+                return (
+                  <View style={styles.dropdownButtonStyle}>
+                    {selectedItem && (
+                      <Icon
+                        name={selectedItem.icon}
+                        style={styles.dropdownButtonIconStyle}
+                      />
+                    )}
+                    <Text style={styles.dropdownButtonTxtStyle}>
+                      {(selectedItem && selectedItem.title) ||
+                        'Select your bank'}
+                    </Text>
+                    <Icon
+                      name={isOpened ? 'chevron-up' : 'chevron-down'}
+                      style={styles.dropdownButtonArrowStyle}
+                    />
+                  </View>
+                );
+              }}
+              renderItem={(item, index, isSelected) => {
+                return (
+                  <View
+                    style={{
+                      ...styles.dropdownItemStyle,
+                      ...(isSelected && {backgroundColor: '#D2D9DF'}),
+                    }}>
+                    <Icon
+                      name={item.icon}
+                      style={styles.dropdownItemIconStyle}
+                    />
+                    <Text style={styles.dropdownItemTxtStyle}>
+                      {item.title}
+                    </Text>
+                  </View>
+                );
+              }}
+              showsVerticalScrollIndicator={false}
+              dropdownStyle={styles.dropdownMenuStyle}
+            />
           </View>
         </View>
         {paymentType === 'cashwithdrawal' && (
@@ -469,6 +468,7 @@ export default function Transactions({navigation}: Props) {
           mode="contained"
           style={{borderRadius: 7}}
           onPress={submit}
+          disabled={loading}
           loading={loading}>
           Make Transaction
         </Button>
@@ -476,3 +476,47 @@ export default function Transactions({navigation}: Props) {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  dropdownButtonStyle: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 9,
+  },
+  dropdownButtonTxtStyle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#151E26',
+  },
+  dropdownButtonArrowStyle: {
+    fontSize: 28,
+  },
+  dropdownButtonIconStyle: {
+    fontSize: 28,
+    marginRight: 8,
+  },
+  dropdownMenuStyle: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+  },
+  dropdownItemStyle: {
+    width: '100%',
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  dropdownItemTxtStyle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#151E26',
+  },
+  dropdownItemIconStyle: {
+    fontSize: 28,
+    marginRight: 8,
+  },
+});
