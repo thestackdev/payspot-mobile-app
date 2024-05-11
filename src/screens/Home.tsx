@@ -9,14 +9,16 @@ import moment from 'moment-timezone';
 import axios from 'axios';
 import useMerchantStore from '../store/useMerchantStore';
 import useSessionStore from '../store/useSessionStore';
+import CashWithdrawalModal from '../modals/cash-withdrawal';
+import BalanceEnquiryModal from '../modals/balance-enquiry';
+import MiniStatementModal from '../modals/mini-statement';
+import AuthFailed from '../modals/auth-failed';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export default function HomeScreen({navigation, route}: Props) {
-  const [location, setLocation] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
   const [loading, setLoading] = useState(true);
-  const {merchant, setMerchant} = useMerchantStore(state => state);
+  const {setMerchant} = useMerchantStore(state => state);
   const {setSession} = useSessionStore(state => state);
   const WEBVIEW_REF = useRef<WebView>(null);
   const [canGoBack, setCanGoBack] = useState(false);
@@ -105,18 +107,15 @@ export default function HomeScreen({navigation, route}: Props) {
     };
   }, [canGoBack]);
 
-  let text = 'Waiting..';
-  if (errorMsg) {
-    text = errorMsg;
-  } else if (location) {
-    text = JSON.stringify(location);
-  }
-
   if (loading) return <Spinner />;
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#441FB1" />
+      <StatusBar barStyle="light-content" backgroundColor="#1e2671" />
+      <AuthFailed />
+      <CashWithdrawalModal />
+      <BalanceEnquiryModal />
+      <MiniStatementModal />
       <WebView
         ref={WEBVIEW_REF}
         onNavigationStateChange={onNavigationStateChange}

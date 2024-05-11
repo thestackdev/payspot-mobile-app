@@ -13,8 +13,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {RootStackParamList} from '../../types';
 import useSessionStore from '../store/useSessionStore';
 import Geolocation from '@react-native-community/geolocation';
-import useMerchantStore from '../store/useMerchantStore';
 import useModalStoreStore from '../store/useModalStore';
+import useCashwithdralStore from '../store/useCashwithdral';
 const devices = ['Mantra', 'Morpho'];
 
 const {RDServices} = NativeModules;
@@ -29,6 +29,9 @@ export default function CashWithdrawal({navigation, route}: Props) {
   const [selectedDevice, setSelectedDevice] = useState(devices[0]);
   const [step, setStep] = useState(1);
   const [merchantRefNo, setMerchantRefNo] = useState(null);
+  const {setShowWithdrawModal, setWithdrawMessage} = useCashwithdralStore(
+    state => state,
+  );
 
   const {amount, aadhar, mobile, bank} = route.params;
 
@@ -45,7 +48,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
             'com.mantra.rdservice',
           );
 
-          if (merchantAuthFingerPrint.status === 'SUCCESS') {
+          if (merchantAuthFingerPrint.status !== 'SUCCESS') {
             const data = new FormData();
 
             data.append('latitude', position.coords.latitude.toString());
@@ -70,7 +73,6 @@ export default function CashWithdrawal({navigation, route}: Props) {
             }
 
             setMerchantRefNo(merchantAuthResponse.data.auth_reference_no);
-            setChecked(false);
             setStep(2);
           } else if (merchantAuthFingerPrint.status === 'FAILURE') {
             setShowErrorModal(true);
@@ -83,7 +85,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
           setShowErrorModal(true);
           setErrorMessage({
             title: 'Internal Server Error',
-            message: JSON.stringify(error),
+            message: 'Please try again later',
           });
         }
         setLoading(false);
@@ -108,9 +110,9 @@ export default function CashWithdrawal({navigation, route}: Props) {
             'com.mantra.rdservice',
           );
 
-          if (userAuthFingerPrint.status === 'SUCCESS') {
+          if (userAuthFingerPrint.status !== 'SUCCESS') {
             const data = new FormData();
-            data.append('transactionType', 'cashwithdrawal');
+            data.append('transactionType', 'cashwithdraw');
             data.append('amount', amount);
             data.append('auth_reference_no', merchantRefNo);
             data.append('responseXML', userAuthFingerPrint.data);
@@ -126,10 +128,25 @@ export default function CashWithdrawal({navigation, route}: Props) {
               {headers: {Cookie: `payspot_session=${session}`}},
             );
 
-            Alert.alert(
-              'Transaction Successful',
-              JSON.stringify(response.data),
-            );
+            const x = {
+              status: 'completed',
+              amount: '100',
+              details: {
+                balance: '500',
+                rrn: '123456',
+                clientrefno: '78910',
+                mobile: '1234567890',
+                aadhar: '123456789012',
+                bank_selected: 'Bank Name',
+              },
+              receipt_url: 'http://example.com/receipt',
+            };
+
+            // setWithdrawMessage(response.data[0]);
+            setWithdrawMessage(x);
+
+            setShowWithdrawModal(true);
+            navigation.pop();
           } else if (userAuthFingerPrint.status === 'FAILURE') {
             setShowErrorModal(true);
             setErrorMessage({
@@ -138,10 +155,12 @@ export default function CashWithdrawal({navigation, route}: Props) {
             });
           }
         } catch (error) {
+          console.log(error);
+
           setShowErrorModal(true);
           setErrorMessage({
-            title: 'Internal Server Error',
-            message: 'Please try again later' + JSON.stringify(error),
+            title: 'Transaction Failed',
+            message: 'Please try again later',
           });
         }
         setLoading(false);
@@ -229,6 +248,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
           }}>
           <Checkbox
             status={checked ? 'checked' : 'unchecked'}
+            disabled={step === 2}
             onPress={() => {
               setChecked(!checked);
             }}

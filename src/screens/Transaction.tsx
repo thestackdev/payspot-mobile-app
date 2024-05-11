@@ -1,7 +1,7 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import axios from 'axios';
 import {useState} from 'react';
-import {Alert, NativeModules, ScrollView, StyleSheet, View} from 'react-native';
+import {NativeModules, ScrollView, StyleSheet, View} from 'react-native';
 import {Button, RadioButton, Text, TextInput} from 'react-native-paper';
 import {RootStackParamList} from '../../types';
 import userMerchantStore from '../store/useMerchantStore';
@@ -11,7 +11,11 @@ import useSessionStore from '../store/useSessionStore';
 import MaskInput from 'react-native-mask-input';
 import SelectDropdown from 'react-native-select-dropdown';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import useModalStoreStore from '../store/useModalStore';
+import useBalanceEnquiryStore from '../store/useBalanceEnquiry';
+import useMiniStatementStore from '../store/useMiniStatement';
+import {validateAadhaar} from '../utils/helpers';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Transactions'>;
 
@@ -20,8 +24,9 @@ export default function Transactions({navigation}: Props) {
   const [aadhar, setAadhar] = useState('');
   const [customerMobile, setCustomerMobile] = useState('');
   const [bank, setBank] = useState(null);
-  const banksList = userMerchantStore(state => state.merchant?.banks_list);
-  const [amount, setAmount] = useState('0');
+  const banksList =
+    userMerchantStore(state => state.merchant?.banks_list) || [];
+  const [amount, setAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const session = useSessionStore(state => state.session);
   const aadharRegex = /^\d{12}$/;
@@ -29,12 +34,12 @@ export default function Transactions({navigation}: Props) {
   const {setErrorMessage, setShowErrorModal} = useModalStoreStore(
     state => state,
   );
+  const {setBalanceEnquiryMessage, setShowBalanceEnquiryModal} =
+    useBalanceEnquiryStore(state => state);
+  const {setMiniStatementMessage, setShowMiniStatementModal} =
+    useMiniStatementStore(state => state);
 
   const IN_PHONE_MASKED = [
-    '+',
-    '9',
-    '1',
-    ' ',
     /\d/,
     /\d/,
     /\d/,
@@ -64,8 +69,14 @@ export default function Transactions({navigation}: Props) {
     /\d/,
   ];
 
+  function reset() {
+    setAadhar('');
+    setCustomerMobile('');
+    setAmount(null);
+  }
+
   function valideAadhar() {
-    const validAadhar = aadharRegex.test(aadhar);
+    const validAadhar = validateAadhaar(aadhar);
 
     if (!validAadhar) {
       setShowErrorModal(true);
@@ -105,15 +116,25 @@ export default function Transactions({navigation}: Props) {
   }
 
   function valideAmount() {
-    if (amount === '0') {
+    if (amount === null || amount < 1) {
       setShowErrorModal(true);
       setErrorMessage({
         title: 'Invalid Amount',
         message: 'Please enter a valid amount',
       });
+      return false;
     }
 
-    return amount;
+    if (amount > 10000) {
+      setShowErrorModal(true);
+      setErrorMessage({
+        title: 'Amount Exceeded',
+        message: 'Amount should not exceed 10000',
+      });
+      return false;
+    }
+
+    return true;
   }
 
   async function cashWithdrawal() {
@@ -127,11 +148,12 @@ export default function Transactions({navigation}: Props) {
     }
 
     navigation.navigate('CashWithdrawal', {
-      amount: parseInt(amount),
+      amount: Number(amount),
       aadhar,
       mobile: customerMobile,
       bank,
     });
+    reset();
   }
 
   async function balanceenquiry() {
@@ -164,9 +186,9 @@ export default function Transactions({navigation}: Props) {
               {headers: {Cookie: `payspot_session=${session}`}},
             );
 
-            navigation.navigate('BalanceEnquiry', {
-              data: response.data,
-            });
+            setBalanceEnquiryMessage(response.data[0]?.result);
+            setShowBalanceEnquiryModal(true);
+            reset();
           } else if (merchantAuthFingerPrint.status === 'FAILURE') {
             setLoading(false);
             setShowErrorModal(true);
@@ -178,7 +200,7 @@ export default function Transactions({navigation}: Props) {
         } catch (error) {
           setShowErrorModal(true);
           setErrorMessage({
-            title: 'Internal Server Error',
+            title: 'Failed to retrieve balance',
             message: 'Please try again later',
           });
         }
@@ -224,9 +246,9 @@ export default function Transactions({navigation}: Props) {
               {headers: {Cookie: `payspot_session=${session}`}},
             );
 
-            navigation.navigate('MiniStatement', {
-              data: response.data,
-            });
+            setMiniStatementMessage(response.data[0]);
+            setShowMiniStatementModal(true);
+            reset();
           } else if (merchantAuthFingerPrint.status === 'FAILURE') {
             setLoading(false);
             setShowErrorModal(true);
@@ -238,7 +260,7 @@ export default function Transactions({navigation}: Props) {
         } catch (error) {
           setShowErrorModal(true);
           setErrorMessage({
-            title: 'Internal Server Error',
+            title: 'Failed to retrieve Mini Statement',
             message: 'Please try again later',
           });
         }
@@ -328,12 +350,7 @@ export default function Transactions({navigation}: Props) {
             Aadhaar Number
             <Text style={{color: 'red'}}> *</Text>
           </Text>
-          <MaskInput
-            value={aadhar}
-            onChangeText={(masked, unmasked) => {
-              setAadhar(unmasked);
-            }}
-            placeholder="XXXX XXXX XXXX"
+          <View
             style={{
               width: '100%',
               marginTop: 12,
@@ -341,12 +358,33 @@ export default function Transactions({navigation}: Props) {
               borderColor: '#ccc',
               borderWidth: 0.7,
               borderRadius: 4,
-              color: 'black',
-              paddingHorizontal: 10,
-            }}
-            keyboardType="numeric"
-            mask={AADHAR_MASKED}
-          />
+              flexDirection: 'row',
+            }}>
+            <MaskInput
+              value={aadhar}
+              onChangeText={(masked, unmasked) => {
+                setAadhar(unmasked);
+              }}
+              placeholder="Enter 12 digit Aadhaar number"
+              style={{
+                width: '100%',
+                backgroundColor: 'white',
+                color: 'black',
+                paddingHorizontal: 10,
+              }}
+              keyboardType="numeric"
+              mask={AADHAR_MASKED}
+              maxLength={14}
+            />
+            {aadhar.length === 12 && (
+              <AntDesign
+                name={validateAadhaar(aadhar) ? 'checkcircle' : 'closecircle'}
+                size={24}
+                color={validateAadhaar(aadhar) ? 'green' : 'red'}
+                style={{position: 'absolute', right: 10, top: 10}}
+              />
+            )}
+          </View>
         </View>
         <View style={{marginTop: 23}}>
           <Text variant="labelLarge" style={{marginLeft: 5}}>
@@ -356,9 +394,9 @@ export default function Transactions({navigation}: Props) {
           <MaskInput
             value={customerMobile}
             onChangeText={(masked, unmasked) => {
-              setCustomerMobile(unmasked);
+              setCustomerMobile(masked);
             }}
-            placeholder="+91 XXXXXXXXX"
+            placeholder="Enter 10 digit mobile number"
             style={{
               width: '100%',
               marginTop: 12,
@@ -371,6 +409,7 @@ export default function Transactions({navigation}: Props) {
             }}
             keyboardType="numeric"
             mask={IN_PHONE_MASKED}
+            maxLength={10}
           />
         </View>
         <View style={{marginTop: 23}}>
@@ -386,8 +425,7 @@ export default function Transactions({navigation}: Props) {
               borderRadius: 4,
             }}>
             <SelectDropdown
-              // @ts-ignore
-              data={banksList?.map(bank => ({
+              data={banksList.map(bank => ({
                 id: bank.id,
                 title: bank.bankName,
                 icon: 'bank',
@@ -395,6 +433,7 @@ export default function Transactions({navigation}: Props) {
               onSelect={(selectedItem, index) => {
                 setBank(selectedItem.id);
               }}
+              defaultValue={bank}
               search={true}
               renderButton={(selectedItem, isOpened) => {
                 return (
@@ -450,6 +489,7 @@ export default function Transactions({navigation}: Props) {
               onChangeText={text => setAmount(text)}
               underlineColor="transparent"
               activeUnderlineColor="transparent"
+              placeholder="Enter amount"
               style={{
                 width: '100%',
                 marginTop: 12,
@@ -458,6 +498,7 @@ export default function Transactions({navigation}: Props) {
                 borderWidth: 0.7,
                 borderRadius: 4,
               }}
+              maxLength={5}
             />
           </View>
         )}

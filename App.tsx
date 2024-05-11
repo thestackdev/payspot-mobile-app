@@ -8,17 +8,13 @@ import HomeScreen from './src/screens/Home';
 import Transactions from './src/screens/Transaction';
 import theme from './src/theme';
 import codePush from 'react-native-code-push';
-import AuthFailed from './src/modals/auth-failed';
 import CashWithdrawal from './src/screens/CashWithdrawal';
-import BalanceEnquiry from './src/screens/BalanceEnquiry';
-import MiniStatement from './src/screens/MiniStatement';
 
 const Stack = createNativeStackNavigator();
 
 function App() {
   return (
     <PaperProvider theme={theme}>
-      <AuthFailed />
       <NavigationContainer>
         <SafeAreaProvider>
           <SafeAreaView style={{flex: 1}}>
@@ -42,20 +38,6 @@ function App() {
                 name="CashWithdrawal"
                 component={CashWithdrawal}
                 options={{headerShown: false}}
-              />
-              <Stack.Screen
-                name="BalanceEnquiry"
-                component={BalanceEnquiry}
-                options={{
-                  title: 'Balance Enquiry',
-                }}
-              />
-              <Stack.Screen
-                name="MiniStatement"
-                component={MiniStatement}
-                options={{
-                  title: 'Mini Statement',
-                }}
               />
             </Stack.Navigator>
           </SafeAreaView>
