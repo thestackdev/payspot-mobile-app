@@ -1,7 +1,7 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import axios from 'axios';
 import {useState} from 'react';
-import {Alert, NativeModules, View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import {
   Button,
   Checkbox,
@@ -48,7 +48,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
             'com.mantra.rdservice',
           );
 
-          if (merchantAuthFingerPrint.status !== 'SUCCESS') {
+          if (merchantAuthFingerPrint.status === 'SUCCESS') {
             const data = new FormData();
 
             data.append('latitude', position.coords.latitude.toString());
@@ -110,7 +110,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
             'com.mantra.rdservice',
           );
 
-          if (userAuthFingerPrint.status !== 'SUCCESS') {
+          if (userAuthFingerPrint.status === 'SUCCESS') {
             const data = new FormData();
             data.append('transactionType', 'cashwithdraw');
             data.append('amount', amount);
@@ -128,23 +128,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
               {headers: {Cookie: `payspot_session=${session}`}},
             );
 
-            const x = {
-              status: 'completed',
-              amount: '100',
-              details: {
-                balance: '500',
-                rrn: '123456',
-                clientrefno: '78910',
-                mobile: '1234567890',
-                aadhar: '123456789012',
-                bank_selected: 'Bank Name',
-              },
-              receipt_url: 'http://example.com/receipt',
-            };
-
-            // setWithdrawMessage(response.data[0]);
-            setWithdrawMessage(x);
-
+            setWithdrawMessage(response.data[0]);
             setShowWithdrawModal(true);
             navigation.pop();
           } else if (userAuthFingerPrint.status === 'FAILURE') {
