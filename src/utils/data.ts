@@ -4,8 +4,8 @@ export const RD_SERVICES = [
     package: 'com.mantra.rdservice',
   },
   {
-    label: 'Mantra MFS100',
-    package: 'com.mantra.mfs110.rdservic',
+    label: 'Mantra MFS110',
+    package: 'com.mantra.mfs110.rdservice',
   },
   {
     label: 'Morpho',

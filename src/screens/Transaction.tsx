@@ -16,6 +16,7 @@ import useModalStoreStore from '../store/useModalStore';
 import useBalanceEnquiryStore from '../store/useBalanceEnquiry';
 import useMiniStatementStore from '../store/useMiniStatement';
 import {validateAadhaar} from '../utils/helpers';
+import {RD_SERVICES} from '../utils/data';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Transactions'>;
 
@@ -38,6 +39,7 @@ export default function Transactions({navigation}: Props) {
     useBalanceEnquiryStore(state => state);
   const {setMiniStatementMessage, setShowMiniStatementModal} =
     useMiniStatementStore(state => state);
+  const [selectedDevice, setSelectedDevice] = useState(RD_SERVICES[0].package);
 
   const IN_PHONE_MASKED = [
     /\d/,
@@ -152,6 +154,7 @@ export default function Transactions({navigation}: Props) {
       aadhar,
       mobile: customerMobile,
       bank,
+      selectedDevice,
     });
     reset();
   }
@@ -167,7 +170,7 @@ export default function Transactions({navigation}: Props) {
           setLoading(true);
 
           const merchantAuthFingerPrint = await RDServices.getFingerPrint(
-            'com.mantra.rdservice',
+            selectedDevice,
           );
 
           if (merchantAuthFingerPrint.status === 'SUCCESS') {
@@ -227,7 +230,7 @@ export default function Transactions({navigation}: Props) {
         setLoading(true);
         try {
           const merchantAuthFingerPrint = await RDServices.getFingerPrint(
-            'com.mantra.rdservice',
+            selectedDevice,
           );
 
           if (merchantAuthFingerPrint.status === 'SUCCESS') {
@@ -296,6 +299,34 @@ export default function Transactions({navigation}: Props) {
       }}
       keyboardDismissMode="interactive"
       keyboardShouldPersistTaps="handled">
+      <View
+        style={{
+          flexWrap: 'wrap',
+          flexDirection: 'row',
+          gap: 10,
+          alignSelf: 'flex-start',
+          marginTop: 10,
+        }}>
+        {RD_SERVICES.map(device => (
+          <View
+            key={device.package}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <RadioButton
+              key={device.package}
+              value={device.package}
+              status={
+                selectedDevice === device.package ? 'checked' : 'unchecked'
+              }
+              onPress={() => setSelectedDevice(device.package)}
+            />
+            <Text>{device.label}</Text>
+          </View>
+        ))}
+      </View>
       <Text style={{marginTop: 16}} variant="labelLarge">
         Payment Type <Text style={{color: 'red'}}>*</Text>
       </Text>

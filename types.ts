@@ -7,6 +7,7 @@ export type RootStackParamList = {
     aadhar: string;
     mobile: string;
     bank: string;
+    selectedDevice: string;
   };
   BalanceEnquiry: {
     data: any;

@@ -2,20 +2,13 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import axios from 'axios';
 import {useState} from 'react';
 import {NativeModules, View} from 'react-native';
-import {
-  Button,
-  Checkbox,
-  RadioButton,
-  Text,
-  useTheme,
-} from 'react-native-paper';
+import {Button, Checkbox, Text, useTheme} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {RootStackParamList} from '../../types';
 import useSessionStore from '../store/useSessionStore';
 import Geolocation from '@react-native-community/geolocation';
 import useModalStoreStore from '../store/useModalStore';
 import useCashwithdralStore from '../store/useCashwithdral';
-import {RD_SERVICES} from '../utils/data';
 
 const {RDServices} = NativeModules;
 
@@ -26,14 +19,13 @@ export default function CashWithdrawal({navigation, route}: Props) {
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
   const session = useSessionStore(state => state.session);
-  const [selectedDevice, setSelectedDevice] = useState(RD_SERVICES[0].package);
   const [step, setStep] = useState(1);
   const [merchantRefNo, setMerchantRefNo] = useState(null);
   const {setShowWithdrawModal, setWithdrawMessage} = useCashwithdralStore(
     state => state,
   );
 
-  const {amount, aadhar, mobile, bank} = route.params;
+  const {amount, aadhar, mobile, bank, selectedDevice} = route.params;
 
   const {
     setErrorMessage,
@@ -48,7 +40,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
         try {
           setLoading(true);
           const merchantAuthFingerPrint = await RDServices.getFingerPrint(
-            'com.mantra.rdservice',
+            selectedDevice,
           );
 
           if (merchantAuthFingerPrint.status === 'SUCCESS') {
@@ -116,7 +108,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
           setLoading(true);
 
           const userAuthFingerPrint = await RDServices.getFingerPrint(
-            'com.mantra.rdservice',
+            selectedDevice,
           );
 
           if (userAuthFingerPrint.status === 'SUCCESS') {
@@ -197,34 +189,6 @@ export default function CashWithdrawal({navigation, route}: Props) {
           <Text style={{color: 'black'}} variant="titleLarge">
             {step === 1 ? 'Merchant Authentication' : 'User Authentication'}
           </Text>
-          <View
-            style={{
-              flexWrap: 'wrap',
-              flexDirection: 'row',
-              gap: 10,
-              alignSelf: 'flex-start',
-              marginTop: 10,
-            }}>
-            {RD_SERVICES.map(device => (
-              <View
-                key={device.package}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                <RadioButton
-                  key={device.package}
-                  value={device.package}
-                  status={
-                    selectedDevice === device.package ? 'checked' : 'unchecked'
-                  }
-                  onPress={() => setSelectedDevice(device.package)}
-                />
-                <Text>{device.label}</Text>
-              </View>
-            ))}
-          </View>
         </View>
       </View>
       <Icon
