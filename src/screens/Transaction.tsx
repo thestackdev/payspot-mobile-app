@@ -293,7 +293,9 @@ export default function Transactions({navigation}: Props) {
         flex: 1,
         backgroundColor: 'white',
         padding: 23,
-      }}>
+      }}
+      keyboardDismissMode="interactive"
+      keyboardShouldPersistTaps="handled">
       <Text style={{marginTop: 16}} variant="labelLarge">
         Payment Type <Text style={{color: 'red'}}>*</Text>
       </Text>
@@ -433,8 +435,8 @@ export default function Transactions({navigation}: Props) {
               onSelect={(selectedItem, index) => {
                 setBank(selectedItem.id);
               }}
-              defaultValue={bank}
               search={true}
+              disableAutoScroll={true}
               renderButton={(selectedItem, isOpened) => {
                 return (
                   <View style={styles.dropdownButtonStyle}>

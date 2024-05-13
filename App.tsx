@@ -24,20 +24,14 @@ function App() {
                 component={HomeScreen}
                 options={{headerShown: false}}
               />
-              <Stack.Screen
-                name="Authenticate"
-                component={Authenticate}
-                options={{headerShown: false}}
-              />
-              <Stack.Screen
-                name="Transactions"
-                component={Transactions}
-                options={{headerShown: false}}
-              />
+              <Stack.Screen name="Authenticate" component={Authenticate} />
+              <Stack.Screen name="Transactions" component={Transactions} />
               <Stack.Screen
                 name="CashWithdrawal"
                 component={CashWithdrawal}
-                options={{headerShown: false}}
+                options={{
+                  title: 'Cash Withdrawal',
+                }}
               />
             </Stack.Navigator>
           </SafeAreaView>

@@ -2,7 +2,6 @@ import {Modal, Portal, Text, Button} from 'react-native-paper';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {StyleSheet, Dimensions, ScrollView, View} from 'react-native';
 import useCashwithdralStore from '../store/useCashwithdral';
-import {useNavigation} from '@react-navigation/native';
 
 export default function CashWithdrawalModal() {
   const {
@@ -11,7 +10,6 @@ export default function CashWithdrawalModal() {
     setWithdrawMessage,
     setShowWithdrawModal,
   } = useCashwithdralStore(state => state);
-  const navigation = useNavigation();
 
   function handleDismiss() {
     setShowWithdrawModal(false);
@@ -52,7 +50,9 @@ export default function CashWithdrawalModal() {
           <Text style={styles.headerTitle}>Transaction Success</Text>
         </View>
         <ScrollView contentContainerStyle={styles.scrollView}>
-          <Text style={styles.messageText}>Amount: {cashwithdraw.amount}</Text>
+          <Text style={[styles.messageText, styles.messageBold]}>
+            Withdraw Amount: {cashwithdraw.amount}
+          </Text>
           <Text style={styles.messageText}>
             Remaning Balance: {cashwithdraw.details.balance}
           </Text>
@@ -121,10 +121,17 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   messageText: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'black',
     textAlign: 'center',
     marginBottom: 20,
+  },
+  messageBold: {
+    fontSize: 14,
+    color: 'black',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: 'bold',
   },
   scrollView: {
     flexGrow: 1,

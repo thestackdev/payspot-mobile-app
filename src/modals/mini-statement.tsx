@@ -48,9 +48,6 @@ export default function MiniStatementModal() {
             Bank: {miniStatement.result.bank_selected}
           </Text>
           <Text style={styles.messageText}>
-            Balance: {miniStatement.result.balance}
-          </Text>
-          <Text style={styles.messageText}>
             RRN: {miniStatement.result.rrn}
           </Text>
           <Text style={styles.messageText}>
@@ -121,10 +118,17 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   messageText: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'black',
     textAlign: 'center',
     marginBottom: 20,
+  },
+  messageBold: {
+    fontSize: 14,
+    color: 'black',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: 'bold',
   },
   scrollView: {
     flexGrow: 1,

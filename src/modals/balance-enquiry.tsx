@@ -2,10 +2,8 @@ import {Modal, Portal, Text, Button} from 'react-native-paper';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {StyleSheet, Dimensions, ScrollView, View} from 'react-native';
 import useBalanceEnquiryStore from '../store/useBalanceEnquiry';
-import {useNavigation} from '@react-navigation/native';
 
 export default function BalanceEnquiryModal() {
-  const navigation = useNavigation();
   const {
     balanceEnquiry,
     setBalanceEnquiryMessage,
@@ -24,11 +22,6 @@ export default function BalanceEnquiryModal() {
       transaction_id: '',
       receipt_url: '',
     });
-  }
-
-  function handleHome() {
-    handleDismiss();
-    navigation.goBack();
   }
 
   return (
@@ -52,7 +45,7 @@ export default function BalanceEnquiryModal() {
           <Text style={styles.messageText}>
             Bank: {balanceEnquiry.bank_selected}
           </Text>
-          <Text style={styles.messageText}>
+          <Text style={[styles.messageText, styles.messageBold]}>
             Balance: {balanceEnquiry.balance}
           </Text>
           <Text style={styles.messageText}>RRN: {balanceEnquiry.rrn}</Text>
@@ -115,10 +108,17 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   messageText: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'black',
     textAlign: 'center',
     marginBottom: 20,
+  },
+  messageBold: {
+    fontSize: 14,
+    color: 'black',
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: 'bold',
   },
   scrollView: {
     flexGrow: 1,

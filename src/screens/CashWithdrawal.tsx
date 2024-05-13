@@ -15,7 +15,7 @@ import useSessionStore from '../store/useSessionStore';
 import Geolocation from '@react-native-community/geolocation';
 import useModalStoreStore from '../store/useModalStore';
 import useCashwithdralStore from '../store/useCashwithdral';
-const devices = ['Mantra', 'Morpho'];
+import {RD_SERVICES} from '../utils/data';
 
 const {RDServices} = NativeModules;
 
@@ -26,7 +26,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
   const session = useSessionStore(state => state.session);
-  const [selectedDevice, setSelectedDevice] = useState(devices[0]);
+  const [selectedDevice, setSelectedDevice] = useState(RD_SERVICES[0].package);
   const [step, setStep] = useState(1);
   const [merchantRefNo, setMerchantRefNo] = useState(null);
   const {setShowWithdrawModal, setWithdrawMessage} = useCashwithdralStore(
@@ -35,9 +35,12 @@ export default function CashWithdrawal({navigation, route}: Props) {
 
   const {amount, aadhar, mobile, bank} = route.params;
 
-  const {setErrorMessage, setShowErrorModal} = useModalStoreStore(
-    state => state,
-  );
+  const {
+    setErrorMessage,
+    setShowErrorModal,
+    setShowSuccessModal,
+    setSuccessMessage,
+  } = useModalStoreStore(state => state);
 
   async function merchantAuthentication() {
     Geolocation.getCurrentPosition(
@@ -71,6 +74,12 @@ export default function CashWithdrawal({navigation, route}: Props) {
               setLoading(false);
               return;
             }
+
+            setShowSuccessModal(true);
+            setSuccessMessage({
+              title: 'Merchant Authenticated',
+              message: 'Merchant has been authenticated successfully',
+            });
 
             setMerchantRefNo(merchantAuthResponse.data.auth_reference_no);
             setStep(2);
@@ -115,7 +124,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
             data.append('transactionType', 'cashwithdraw');
             data.append('amount', amount);
             data.append('auth_reference_no', merchantRefNo);
-            data.append('responseXML', userAuthFingerPrint.data);
+            data.append('responseXML', userAuthFingerPrint.message);
             data.append('aadhar_number', aadhar);
             data.append('latitude', position.coords.latitude.toString());
             data.append('longitude', position.coords.longitude.toString());
@@ -196,21 +205,23 @@ export default function CashWithdrawal({navigation, route}: Props) {
               alignSelf: 'flex-start',
               marginTop: 10,
             }}>
-            {devices.map(device => (
+            {RD_SERVICES.map(device => (
               <View
-                key={device}
+                key={device.package}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>
                 <RadioButton
-                  key={device}
-                  value={device}
-                  status={selectedDevice === device ? 'checked' : 'unchecked'}
-                  onPress={() => setSelectedDevice(device)}
+                  key={device.package}
+                  value={device.package}
+                  status={
+                    selectedDevice === device.package ? 'checked' : 'unchecked'
+                  }
+                  onPress={() => setSelectedDevice(device.package)}
                 />
-                <Text>{device}</Text>
+                <Text>{device.label}</Text>
               </View>
             ))}
           </View>

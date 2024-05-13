@@ -13,6 +13,8 @@ import CashWithdrawalModal from '../modals/cash-withdrawal';
 import BalanceEnquiryModal from '../modals/balance-enquiry';
 import MiniStatementModal from '../modals/mini-statement';
 import AuthFailed from '../modals/auth-failed';
+import {useIsFocused} from '@react-navigation/native';
+import AuthSuccess from '../modals/auth-success';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -22,6 +24,7 @@ export default function HomeScreen({navigation, route}: Props) {
   const {setSession} = useSessionStore(state => state);
   const WEBVIEW_REF = useRef<WebView>(null);
   const [canGoBack, setCanGoBack] = useState(false);
+  const isFocused = useIsFocused();
 
   function isTodayIST(timestamp: string) {
     const dateInIST = moment(timestamp).tz('Asia/Kolkata');
@@ -92,6 +95,12 @@ export default function HomeScreen({navigation, route}: Props) {
   }, []);
 
   useEffect(() => {
+    if (!isFocused) return;
+    const script = `window.location = 'https://payspot.co.in';`;
+    WEBVIEW_REF.current?.injectJavaScript(script);
+  }, [isFocused]);
+
+  useEffect(() => {
     const handleBackButton = () => {
       if (WEBVIEW_REF.current && canGoBack) {
         WEBVIEW_REF.current.goBack();
@@ -113,6 +122,7 @@ export default function HomeScreen({navigation, route}: Props) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#1e2671" />
       <AuthFailed />
+      <AuthSuccess />
       <CashWithdrawalModal />
       <BalanceEnquiryModal />
       <MiniStatementModal />

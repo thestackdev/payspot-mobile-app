@@ -15,7 +15,7 @@ import useSessionStore from '../store/useSessionStore';
 import Geolocation from '@react-native-community/geolocation';
 import useMerchantStore from '../store/useMerchantStore';
 import useModalStoreStore from '../store/useModalStore';
-const devices = ['Mantra', 'Morpho'];
+import {RD_SERVICES} from '../utils/data';
 
 const {RDServices} = NativeModules;
 
@@ -27,7 +27,7 @@ export default function Authenticate({navigation}: Props) {
   const [checked, setChecked] = useState(false);
   const session = useSessionStore(state => state.session);
   const {merchant} = useMerchantStore(state => state);
-  const [selectedDevice, setSelectedDevice] = useState(devices[0]);
+  const [selectedDevice, setSelectedDevice] = useState(RD_SERVICES[0].package);
 
   const {setErrorMessage, setShowErrorModal} = useModalStoreStore(
     state => state,
@@ -37,9 +37,7 @@ export default function Authenticate({navigation}: Props) {
     Geolocation.getCurrentPosition(
       async position => {
         setLoading(true);
-        const captureResponse = await RDServices.getFingerPrint(
-          'com.mantra.rdservice',
-        );
+        const captureResponse = await RDServices.getFingerPrint(selectedDevice);
 
         if (captureResponse.status === 'SUCCESS') {
           try {
@@ -79,7 +77,6 @@ export default function Authenticate({navigation}: Props) {
             message: captureResponse.message,
           });
         }
-
         setLoading(false);
       },
       error => {
@@ -142,22 +139,23 @@ export default function Authenticate({navigation}: Props) {
               alignSelf: 'flex-start',
               marginTop: 10,
             }}>
-            {devices.map(device => (
+            {RD_SERVICES.map(device => (
               <View
-                key={device}
+                key={device.package}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>
                 <RadioButton
-                  disabled={device === 'Morpho'}
-                  key={device}
-                  value={device}
-                  status={selectedDevice === device ? 'checked' : 'unchecked'}
-                  onPress={() => setSelectedDevice(device)}
+                  key={device.package}
+                  value={device.package}
+                  status={
+                    selectedDevice === device.package ? 'checked' : 'unchecked'
+                  }
+                  onPress={() => setSelectedDevice(device.package)}
                 />
-                <Text>{device}</Text>
+                <Text>{device.label}</Text>
               </View>
             ))}
           </View>
