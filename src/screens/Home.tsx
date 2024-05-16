@@ -15,6 +15,7 @@ import MiniStatementModal from '../modals/mini-statement';
 import AuthFailed from '../modals/auth-failed';
 import {useIsFocused} from '@react-navigation/native';
 import AuthSuccess from '../modals/auth-success';
+import useModalStoreStore from '../store/useModalStore';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -25,6 +26,9 @@ export default function HomeScreen({navigation, route}: Props) {
   const WEBVIEW_REF = useRef<WebView>(null);
   const [canGoBack, setCanGoBack] = useState(false);
   const isFocused = useIsFocused();
+  const {setErrorMessage, setShowErrorModal} = useModalStoreStore(
+    state => state,
+  );
 
   function isTodayIST(timestamp: string) {
     const dateInIST = moment(timestamp).tz('Asia/Kolkata');
@@ -79,7 +83,21 @@ export default function HomeScreen({navigation, route}: Props) {
             navigation.push('Authenticate');
           }
         } catch (error) {
-          console.log(error);
+          const e = error as any;
+
+          setShowErrorModal(true);
+
+          if (e.response) {
+            setErrorMessage({
+              title: 'Something went wrong',
+              message: e.response?.data?.error || 'Please try again later',
+            });
+          } else {
+            setErrorMessage({
+              title: 'Something went wrong',
+              message: 'Please try again later',
+            });
+          }
         }
       }
     }

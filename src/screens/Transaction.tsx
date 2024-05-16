@@ -1,7 +1,13 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import axios from 'axios';
 import {useState} from 'react';
-import {NativeModules, ScrollView, StyleSheet, View} from 'react-native';
+import {
+  NativeModules,
+  ScrollView,
+  StyleSheet,
+  View,
+  Keyboard,
+} from 'react-native';
 import {Button, RadioButton, Text, TextInput} from 'react-native-paper';
 import {RootStackParamList} from '../../types';
 import userMerchantStore from '../store/useMerchantStore';
@@ -191,7 +197,6 @@ export default function Transactions({navigation}: Props) {
 
             setBalanceEnquiryMessage(response.data[0]?.result);
             setShowBalanceEnquiryModal(true);
-            reset();
           } else if (merchantAuthFingerPrint.status === 'FAILURE') {
             setLoading(false);
             setShowErrorModal(true);
@@ -201,11 +206,21 @@ export default function Transactions({navigation}: Props) {
             });
           }
         } catch (error) {
+          const e = error as any;
+
           setShowErrorModal(true);
-          setErrorMessage({
-            title: 'Failed to retrieve balance',
-            message: 'Please try again later',
-          });
+
+          if (e.response) {
+            setErrorMessage({
+              title: 'Failed to retrieve balance',
+              message: e.response?.data?.error || 'Something went wrong',
+            });
+          } else {
+            setErrorMessage({
+              title: 'Failed to retrieve balance',
+              message: 'Please try again later',
+            });
+          }
         }
         setLoading(false);
       },
@@ -251,7 +266,6 @@ export default function Transactions({navigation}: Props) {
 
             setMiniStatementMessage(response.data[0]);
             setShowMiniStatementModal(true);
-            reset();
           } else if (merchantAuthFingerPrint.status === 'FAILURE') {
             setLoading(false);
             setShowErrorModal(true);
@@ -261,11 +275,23 @@ export default function Transactions({navigation}: Props) {
             });
           }
         } catch (error) {
+          const e = error as any;
+
+          navigation.pop();
+
           setShowErrorModal(true);
-          setErrorMessage({
-            title: 'Failed to retrieve Mini Statement',
-            message: 'Please try again later',
-          });
+
+          if (e.response) {
+            setErrorMessage({
+              title: 'Failed to retrieve Mini Statement',
+              message: e.response?.data?.error || 'Something went wrong',
+            });
+          } else {
+            setErrorMessage({
+              title: 'Failed to retrieve Mini Statement',
+              message: 'Please try again later',
+            });
+          }
         }
         setLoading(false);
       },
@@ -281,6 +307,7 @@ export default function Transactions({navigation}: Props) {
   }
 
   function submit() {
+    Keyboard.dismiss();
     if (paymentType === 'cashwithdrawal') {
       cashWithdrawal();
     } else if (paymentType === 'balanceenquiry') {
@@ -408,6 +435,7 @@ export default function Transactions({navigation}: Props) {
               keyboardType="numeric"
               mask={AADHAR_MASKED}
               maxLength={14}
+              aria-disabled={loading}
             />
             {aadhar.length === 12 && (
               <AntDesign
@@ -443,6 +471,7 @@ export default function Transactions({navigation}: Props) {
             keyboardType="numeric"
             mask={IN_PHONE_MASKED}
             maxLength={10}
+            aria-disabled={loading}
           />
         </View>
         <View style={{marginTop: 23}}>
@@ -531,6 +560,7 @@ export default function Transactions({navigation}: Props) {
                 borderWidth: 0.7,
                 borderRadius: 4,
               }}
+              disabled={loading}
               maxLength={5}
             />
           </View>

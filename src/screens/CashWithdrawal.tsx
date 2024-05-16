@@ -83,11 +83,21 @@ export default function CashWithdrawal({navigation, route}: Props) {
             });
           }
         } catch (error) {
+          const e = error as any;
+
           setShowErrorModal(true);
-          setErrorMessage({
-            title: 'Internal Server Error',
-            message: 'Please try again later',
-          });
+
+          if (e.response) {
+            setErrorMessage({
+              title: 'Authentication Failed',
+              message: e.response?.data?.error || 'Something went wrong',
+            });
+          } else {
+            setErrorMessage({
+              title: 'Authentication Failed',
+              message: 'An error occurred while authenticating.',
+            });
+          }
         }
         setLoading(false);
       },
@@ -140,13 +150,21 @@ export default function CashWithdrawal({navigation, route}: Props) {
             });
           }
         } catch (error) {
-          console.log(error);
+          const e = error as any;
 
           setShowErrorModal(true);
-          setErrorMessage({
-            title: 'Transaction Failed',
-            message: 'Please try again later',
-          });
+
+          if (e.response) {
+            setErrorMessage({
+              title: 'Transaction Failed',
+              message: e.response?.data?.error || 'Something went wrong',
+            });
+          } else {
+            setErrorMessage({
+              title: 'Transaction Failed',
+              message: 'Please try again later',
+            });
+          }
         }
         setLoading(false);
       },

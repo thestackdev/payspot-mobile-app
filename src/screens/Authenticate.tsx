@@ -64,11 +64,21 @@ export default function Authenticate({navigation}: Props) {
               });
             }
           } catch (error) {
+            const e = error as any;
+
             setShowErrorModal(true);
-            setErrorMessage({
-              title: 'Authentication Failed',
-              message: JSON.stringify(error),
-            });
+
+            if (e.response) {
+              setErrorMessage({
+                title: 'Authentication Failed',
+                message: e.response?.data?.error || 'Something went wrong',
+              });
+            } else {
+              setErrorMessage({
+                title: 'Authentication Failed',
+                message: 'An error occurred while authenticating.',
+              });
+            }
           }
         } else if (captureResponse.status === 'FAILURE') {
           setShowErrorModal(true);
