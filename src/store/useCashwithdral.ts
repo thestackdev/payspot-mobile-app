@@ -16,12 +16,14 @@ interface ModalStore {
     amount: string;
     details: Details;
     receipt_url: string;
+    current_balance: string;
   };
   setWithdrawMessage: (e: {
     status: string;
     amount: string;
     details: Details;
     receipt_url: string;
+    current_balance: string;
   }) => void;
   setShowWithdrawModal: (e: boolean) => void;
 }
@@ -40,6 +42,7 @@ const useCashwithdralStore = create<ModalStore>(set => ({
       bank_selected: '',
     },
     receipt_url: '',
+    current_balance: '',
   },
   setWithdrawMessage: e =>
     set({
@@ -48,6 +51,7 @@ const useCashwithdralStore = create<ModalStore>(set => ({
         amount: e.amount,
         details: e.details,
         receipt_url: e.receipt_url,
+        current_balance: e.current_balance,
       },
     }),
   setShowWithdrawModal: e => set({showWithdrawModal: e}),

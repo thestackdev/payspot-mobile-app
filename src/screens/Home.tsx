@@ -16,6 +16,9 @@ import AuthFailed from '../modals/auth-failed';
 import {useIsFocused} from '@react-navigation/native';
 import AuthSuccess from '../modals/auth-success';
 import useModalStoreStore from '../store/useModalStore';
+import {BASE_URL} from '../utils/data';
+
+axios.defaults.baseURL = BASE_URL;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -59,11 +62,9 @@ export default function HomeScreen({navigation, route}: Props) {
   const onNavigationStateChange = async (navState: WebViewNavigation) => {
     setCanGoBack(navState.canGoBack);
     if (navState.loading === false) {
-      if (navState.url === 'https://payspot.co.in/transact') {
+      if (navState.url === `${BASE_URL}/transact`) {
         try {
-          const respnse = await axios.get(
-            'https://payspot.co.in/credopay/get_cred_data',
-          );
+          const respnse = await axios.get('/credopay/get_cred_data');
 
           setMerchant(respnse.data?.data);
 
@@ -114,7 +115,7 @@ export default function HomeScreen({navigation, route}: Props) {
 
   useEffect(() => {
     if (!isFocused) return;
-    const script = `window.location = 'https://payspot.co.in';`;
+    const script = `window.location = ${BASE_URL};`;
     WEBVIEW_REF.current?.injectJavaScript(script);
   }, [isFocused]);
 
@@ -147,7 +148,7 @@ export default function HomeScreen({navigation, route}: Props) {
       <WebView
         ref={WEBVIEW_REF}
         onNavigationStateChange={onNavigationStateChange}
-        source={{uri: 'https://payspot.co.in'}}
+        source={{uri: BASE_URL}}
         thirdPartyCookiesEnabled={true}
         injectedJavaScript={jsCode}
         onMessage={onMessage}

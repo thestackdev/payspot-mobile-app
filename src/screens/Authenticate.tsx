@@ -49,7 +49,7 @@ export default function Authenticate({navigation}: Props) {
             data.append('responseXML', captureResponse.message);
 
             const response = await axios.post(
-              'https://payspot.co.in/credopay/merchant_authentication2',
+              '/credopay/merchant_authentication2',
               data,
               {headers: {Cookie: `payspot_session=${session}`}},
             );

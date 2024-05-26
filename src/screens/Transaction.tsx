@@ -23,6 +23,7 @@ import useBalanceEnquiryStore from '../store/useBalanceEnquiry';
 import useMiniStatementStore from '../store/useMiniStatement';
 import {validateAadhaar} from '../utils/helpers';
 import {RD_SERVICES} from '../utils/data';
+import useMerchantStore from '../store/useMerchantStore';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Transactions'>;
 
@@ -45,7 +46,15 @@ export default function Transactions({navigation}: Props) {
     useBalanceEnquiryStore(state => state);
   const {setMiniStatementMessage, setShowMiniStatementModal} =
     useMiniStatementStore(state => state);
-  const [selectedDevice, setSelectedDevice] = useState(RD_SERVICES[0].package);
+  const defaultDevice = useMerchantStore(
+    state => state.merchant?.onboarded.default_device,
+  );
+
+  const [selectedDevice, setSelectedDevice] = useState(
+    defaultDevice === 'mantra'
+      ? RD_SERVICES[1].package
+      : RD_SERVICES[2].package,
+  );
 
   const IN_PHONE_MASKED = [
     /\d/,
@@ -190,7 +199,7 @@ export default function Transactions({navigation}: Props) {
             data.append('responseXML', merchantAuthFingerPrint.message);
 
             const response = await axios.post(
-              `https://payspot.co.in/aeps/merchant_credopay_transaction2`,
+              `/aeps/merchant_credopay_transaction2`,
               data,
               {headers: {Cookie: `payspot_session=${session}`}},
             );
@@ -259,7 +268,7 @@ export default function Transactions({navigation}: Props) {
             data.append('responseXML', merchantAuthFingerPrint.message);
 
             const response = await axios.post(
-              `https://payspot.co.in/aeps/merchant_credopay_transaction2`,
+              `/aeps/merchant_credopay_transaction2`,
               data,
               {headers: {Cookie: `payspot_session=${session}`}},
             );
@@ -432,6 +441,7 @@ export default function Transactions({navigation}: Props) {
                 color: 'black',
                 paddingHorizontal: 10,
               }}
+              autoFocus={false}
               keyboardType="numeric"
               mask={AADHAR_MASKED}
               maxLength={14}
@@ -457,6 +467,7 @@ export default function Transactions({navigation}: Props) {
             onChangeText={(masked, unmasked) => {
               setCustomerMobile(masked);
             }}
+            autoFocus={false}
             placeholder="Enter 10 digit mobile number"
             style={{
               width: '100%',
@@ -552,6 +563,7 @@ export default function Transactions({navigation}: Props) {
               underlineColor="transparent"
               activeUnderlineColor="transparent"
               placeholder="Enter amount"
+              autoFocus={false}
               style={{
                 width: '100%',
                 marginTop: 12,

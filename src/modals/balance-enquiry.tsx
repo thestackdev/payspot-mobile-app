@@ -42,13 +42,12 @@ export default function BalanceEnquiryModal() {
           <Text style={styles.headerTitle}>Transaction Success</Text>
         </View>
         <ScrollView contentContainerStyle={styles.scrollView}>
-          <Text style={styles.messageText}>
-            Bank: {balanceEnquiry.bank_selected}
-          </Text>
           <Text style={[styles.messageText, styles.messageBold]}>
             Balance: {balanceEnquiry.balance}
           </Text>
-          <Text style={styles.messageText}>RRN: {balanceEnquiry.rrn}</Text>
+          <Text style={styles.messageText}>
+            Bank: {balanceEnquiry.bank_selected}
+          </Text>
           <Text style={styles.messageText}>
             Mobile: {balanceEnquiry.mobile}
           </Text>

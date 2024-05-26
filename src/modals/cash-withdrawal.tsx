@@ -2,6 +2,8 @@ import {Modal, Portal, Text, Button} from 'react-native-paper';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {StyleSheet, Dimensions, ScrollView, View} from 'react-native';
 import useCashwithdralStore from '../store/useCashwithdral';
+import {useNavigation} from '@react-navigation/native';
+import {CommonActions} from '@react-navigation/native';
 
 export default function CashWithdrawalModal() {
   const {
@@ -10,6 +12,8 @@ export default function CashWithdrawalModal() {
     setWithdrawMessage,
     setShowWithdrawModal,
   } = useCashwithdralStore(state => state);
+
+  const navigation = useNavigation();
 
   function handleDismiss() {
     setShowWithdrawModal(false);
@@ -25,11 +29,18 @@ export default function CashWithdrawalModal() {
         bank_selected: '',
       },
       receipt_url: '',
+      current_balance: '',
     });
   }
 
   function handleHome() {
     handleDismiss();
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [{name: 'Home'}],
+      }),
+    );
   }
 
   return (
@@ -68,19 +79,28 @@ export default function CashWithdrawalModal() {
           <Text style={styles.messageText}>
             Aadhar: {cashwithdraw.details.aadhar}
           </Text>
+          <Text style={styles.messageText}>
+            Current Balance: {cashwithdraw.current_balance}
+          </Text>
         </ScrollView>
         <View
           style={{
             flexDirection: 'row',
-            justifyContent: 'center',
+            justifyContent: 'space-evenly',
             alignItems: 'center',
             gap: 10,
           }}>
           <Button
-            mode="contained"
+            icon="home-plus-outline"
             onPress={handleHome}
             style={styles.closeButton}>
-            Close
+            Home
+          </Button>
+          <Button
+            icon="plus"
+            onPress={handleDismiss}
+            style={styles.transactionButton}>
+            Transactions
           </Button>
         </View>
       </Modal>
@@ -114,11 +134,17 @@ const styles = StyleSheet.create({
     width: '50%',
   },
   closeButton: {
-    backgroundColor: '#dc3545',
     color: 'white',
     alignSelf: 'center',
     borderRadius: 5,
-    width: '100%',
+    width: '50%',
+  },
+  transactionButton: {
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    alignSelf: 'center',
+    borderRadius: 5,
+    width: '50%',
   },
   messageText: {
     fontSize: 14,

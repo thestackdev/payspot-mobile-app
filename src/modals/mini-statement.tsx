@@ -26,6 +26,17 @@ export default function MiniStatementModal() {
     });
   }
 
+  function extractBalance() {
+    if (miniStatement.result_statement.length === 0) {
+      return '';
+    }
+    let balanceLine =
+      miniStatement.result_statement[miniStatement.result_statement.length - 1];
+    let balance = balanceLine.split(':')[1];
+
+    return balance;
+  }
+
   return (
     <Portal>
       <Modal
@@ -44,6 +55,11 @@ export default function MiniStatementModal() {
           <Text style={styles.headerTitle}>Transaction Success</Text>
         </View>
         <ScrollView contentContainerStyle={styles.scrollView}>
+          {extractBalance() && (
+            <Text style={[styles.messageText, styles.messageBold]}>
+              Balance: {extractBalance()}
+            </Text>
+          )}
           <Text style={styles.messageText}>
             Bank: {miniStatement.result.bank_selected}
           </Text>

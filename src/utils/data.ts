@@ -7,4 +7,10 @@ export const RD_SERVICES = [
     label: 'Mantra MFS110',
     package: 'com.mantra.mfs110.rdservice',
   },
+  {
+    label: 'Morpho',
+    package: 'com.scl.rdservice',
+  },
 ];
+
+export const BASE_URL = 'https://payspot.co.in';

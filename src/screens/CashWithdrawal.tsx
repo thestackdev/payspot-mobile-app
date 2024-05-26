@@ -9,6 +9,7 @@ import useSessionStore from '../store/useSessionStore';
 import Geolocation from '@react-native-community/geolocation';
 import useModalStoreStore from '../store/useModalStore';
 import useCashwithdralStore from '../store/useCashwithdral';
+import {BASE_URL} from '../utils/data';
 
 const {RDServices} = NativeModules;
 
@@ -51,7 +52,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
             data.append('responseXML', merchantAuthFingerPrint.message);
 
             const merchantAuthResponse = await axios.post(
-              'https://payspot.co.in/credopay/merchant_authentication2',
+              `${BASE_URL}/credopay/merchant_authentication2`,
               data,
               {headers: {Cookie: `payspot_session=${session}`}},
             );
@@ -134,7 +135,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
             data.append('mobile_number', mobile);
 
             const response = await axios.post(
-              `https://payspot.co.in/aeps/merchant_credopay_transaction2`,
+              `${BASE_URL}/aeps/merchant_credopay_transaction2`,
               data,
               {headers: {Cookie: `payspot_session=${session}`}},
             );
