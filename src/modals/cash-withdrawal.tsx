@@ -79,8 +79,8 @@ export default function CashWithdrawalModal() {
           <Text style={styles.messageText}>
             Aadhar: {cashwithdraw.details.aadhar}
           </Text>
-          <Text style={styles.messageText}>
-            Current Balance: {cashwithdraw.current_balance}
+          <Text style={[styles.messageText, styles.messageBold]}>
+            Wallet Balance: {cashwithdraw.current_balance}
           </Text>
         </ScrollView>
         <View

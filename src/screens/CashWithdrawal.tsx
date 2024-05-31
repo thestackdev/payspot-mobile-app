@@ -82,6 +82,12 @@ export default function CashWithdrawal({navigation, route}: Props) {
               title: 'Failed to capture Merchant fingerprint',
               message: merchantAuthFingerPrint.message,
             });
+          } else {
+            setShowErrorModal(true);
+            setErrorMessage({
+              title: 'Finger Print Capture Failed',
+              message: JSON.stringify(merchantAuthFingerPrint),
+            });
           }
         } catch (error) {
           const e = error as any;
@@ -148,6 +154,12 @@ export default function CashWithdrawal({navigation, route}: Props) {
             setErrorMessage({
               title: 'Failed to capture User fingerprint',
               message: userAuthFingerPrint.message,
+            });
+          } else {
+            setShowErrorModal(true);
+            setErrorMessage({
+              title: 'Finger Print Capture Failed',
+              message: JSON.stringify(userAuthFingerPrint),
             });
           }
         } catch (error) {

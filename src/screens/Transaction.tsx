@@ -213,6 +213,12 @@ export default function Transactions({navigation}: Props) {
               title: 'Failed to capture fingerprint',
               message: merchantAuthFingerPrint.message,
             });
+          } else {
+            setShowErrorModal(true);
+            setErrorMessage({
+              title: 'Finger Print Capture Failed',
+              message: JSON.stringify(merchantAuthFingerPrint),
+            });
           }
         } catch (error) {
           const e = error as any;
@@ -281,6 +287,12 @@ export default function Transactions({navigation}: Props) {
             setErrorMessage({
               title: 'Failed to capture fingerprint',
               message: merchantAuthFingerPrint.message,
+            });
+          } else {
+            setShowErrorModal(true);
+            setErrorMessage({
+              title: 'Finger Print Capture Failed',
+              message: JSON.stringify(merchantAuthFingerPrint),
             });
           }
         } catch (error) {

@@ -52,7 +52,7 @@ react {
     // hermesFlags = ["-O", "-output-source-map"]
 }
 
-def enableSeparateBuildPerCPUArchitecture = true
+def enableSeparateBuildPerCPUArchitecture = false
 def enableProguardInReleaseBuilds = true
 def enableShrinkResources = true
 def jscFlavor = 'org.webkit:android-jsc:+'

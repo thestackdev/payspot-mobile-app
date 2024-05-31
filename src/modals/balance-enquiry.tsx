@@ -49,11 +49,12 @@ export default function BalanceEnquiryModal() {
             Bank: {balanceEnquiry.bank_selected}
           </Text>
           <Text style={styles.messageText}>
-            Mobile: {balanceEnquiry.mobile}
+            Aadhar: {balanceEnquiry.aadhar}
           </Text>
           <Text style={styles.messageText}>
-            Transaction ID: {balanceEnquiry.transaction_id}
+            Mobile: {balanceEnquiry.mobile}
           </Text>
+          <Text style={styles.messageText}>RRN: {balanceEnquiry.rrn}</Text>
         </ScrollView>
         <View
           style={{

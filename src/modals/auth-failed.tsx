@@ -52,5 +52,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
 });
