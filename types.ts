@@ -6,7 +6,7 @@ export type RootStackParamList = {
     amount: number;
     aadhar: string;
     mobile: string;
-    bank: string;
+    bank: number | null;
     selectedDevice: string;
   };
   BalanceEnquiry: {
@@ -15,4 +15,5 @@ export type RootStackParamList = {
   MiniStatement: {
     data: any;
   };
+  SelectBank: undefined;
 };

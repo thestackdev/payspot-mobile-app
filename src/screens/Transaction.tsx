@@ -7,16 +7,15 @@ import {
   StyleSheet,
   View,
   Keyboard,
+  Pressable,
 } from 'react-native';
 import {Button, RadioButton, Text, TextInput} from 'react-native-paper';
 import {RootStackParamList} from '../../types';
-import userMerchantStore from '../store/useMerchantStore';
 const {RDServices} = NativeModules;
 import Geolocation from '@react-native-community/geolocation';
 import useSessionStore from '../store/useSessionStore';
 import MaskInput from 'react-native-mask-input';
-import SelectDropdown from 'react-native-select-dropdown';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import useModalStoreStore from '../store/useModalStore';
 import useBalanceEnquiryStore from '../store/useBalanceEnquiry';
@@ -24,6 +23,8 @@ import useMiniStatementStore from '../store/useMiniStatement';
 import {validateAadhaar} from '../utils/helpers';
 import {RD_SERVICES} from '../utils/data';
 import useMerchantStore from '../store/useMerchantStore';
+import useSelectBankStore from '../store/useSelectBankStore';
+import userMerchantStore from '../store/useMerchantStore';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Transactions'>;
 
@@ -32,8 +33,7 @@ export default function Transactions({navigation}: Props) {
   const [aadhar, setAadhar] = useState('');
   const [customerMobile, setCustomerMobile] = useState('');
   const [bank, setBank] = useState(null);
-  const banksList =
-    userMerchantStore(state => state.merchant?.banks_list) || [];
+
   const [amount, setAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const session = useSessionStore(state => state.session);
@@ -42,6 +42,7 @@ export default function Transactions({navigation}: Props) {
   const {setErrorMessage, setShowErrorModal} = useModalStoreStore(
     state => state,
   );
+  const {selectedBank, setSelectedBank} = useSelectBankStore();
   const {setBalanceEnquiryMessage, setShowBalanceEnquiryModal} =
     useBalanceEnquiryStore(state => state);
   const {setMiniStatementMessage, setShowMiniStatementModal} =
@@ -49,6 +50,8 @@ export default function Transactions({navigation}: Props) {
   const defaultDevice = useMerchantStore(
     state => state.merchant?.onboarded.default_device,
   );
+  const banksList =
+    userMerchantStore(state => state.merchant?.banks_list) || [];
 
   const [selectedDevice, setSelectedDevice] = useState(
     defaultDevice === 'mantra'
@@ -168,7 +171,7 @@ export default function Transactions({navigation}: Props) {
       amount: Number(amount),
       aadhar,
       mobile: customerMobile,
-      bank,
+      bank: selectedBank,
       selectedDevice,
     });
     reset();
@@ -498,69 +501,20 @@ export default function Transactions({navigation}: Props) {
           />
         </View>
         <View style={{marginTop: 23}}>
-          <Text variant="labelLarge" style={{marginLeft: 5}}>
-            Bank
-            <Text style={{color: 'red'}}> *</Text>
+          <Text>
+            Bank <Text style={{color: 'red'}}>*</Text>
           </Text>
-          <View
-            style={{
-              width: '100%',
-              marginTop: 12,
-              borderWidth: 0.7,
-              borderRadius: 4,
+          <Pressable
+            style={styles.textInputContainer}
+            onPress={() => {
+              navigation.navigate('SelectBank');
             }}>
-            <SelectDropdown
-              data={banksList.map(bank => ({
-                id: bank.id,
-                title: bank.bankName,
-                icon: 'bank',
-              }))}
-              onSelect={(selectedItem, index) => {
-                setBank(selectedItem.id);
-              }}
-              search={true}
-              disableAutoScroll={true}
-              renderButton={(selectedItem, isOpened) => {
-                return (
-                  <View style={styles.dropdownButtonStyle}>
-                    {selectedItem && (
-                      <Icon
-                        name={selectedItem.icon}
-                        style={styles.dropdownButtonIconStyle}
-                      />
-                    )}
-                    <Text style={styles.dropdownButtonTxtStyle}>
-                      {(selectedItem && selectedItem.title) ||
-                        'Select your bank'}
-                    </Text>
-                    <Icon
-                      name={isOpened ? 'chevron-up' : 'chevron-down'}
-                      style={styles.dropdownButtonArrowStyle}
-                    />
-                  </View>
-                );
-              }}
-              renderItem={(item, index, isSelected) => {
-                return (
-                  <View
-                    style={{
-                      ...styles.dropdownItemStyle,
-                      ...(isSelected && {backgroundColor: '#D2D9DF'}),
-                    }}>
-                    <Icon
-                      name={item.icon}
-                      style={styles.dropdownItemIconStyle}
-                    />
-                    <Text style={styles.dropdownItemTxtStyle}>
-                      {item.title}
-                    </Text>
-                  </View>
-                );
-              }}
-              showsVerticalScrollIndicator={false}
-              dropdownStyle={styles.dropdownMenuStyle}
-            />
-          </View>
+            <Text>
+              {selectedBank
+                ? banksList.filter(e => e.id === selectedBank)[0].bankName
+                : 'Select Bank'}
+            </Text>
+          </Pressable>
         </View>
         {paymentType === 'cashwithdrawal' && (
           <View style={{marginTop: 23}}>
@@ -606,45 +560,13 @@ export default function Transactions({navigation}: Props) {
 }
 
 const styles = StyleSheet.create({
-  dropdownButtonStyle: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 9,
-  },
-  dropdownButtonTxtStyle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#151E26',
-  },
-  dropdownButtonArrowStyle: {
-    fontSize: 28,
-  },
-  dropdownButtonIconStyle: {
-    fontSize: 28,
-    marginRight: 8,
-  },
-  dropdownMenuStyle: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-  },
-  dropdownItemStyle: {
+  textInputContainer: {
     width: '100%',
-    flexDirection: 'row',
-    paddingHorizontal: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  dropdownItemTxtStyle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#151E26',
-  },
-  dropdownItemIconStyle: {
-    fontSize: 28,
-    marginRight: 8,
+    marginTop: 12,
+    backgroundColor: 'white',
+    borderColor: '#ccc',
+    borderWidth: 0.7,
+    borderRadius: 4,
+    padding: 12,
   },
 });

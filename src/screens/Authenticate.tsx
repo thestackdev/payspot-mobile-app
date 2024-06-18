@@ -92,11 +92,10 @@ export default function Authenticate({navigation}: Props) {
       error => {
         setShowErrorModal(true);
         setErrorMessage({
-          title: 'Location Permission Required',
-          message: 'Please enable location permission to continue',
+          title: 'Failed to get location',
+          message: error.message || 'Please enable location permission',
         });
       },
-      {enableHighAccuracy: true},
     );
   }
 

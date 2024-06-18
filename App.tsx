@@ -9,6 +9,7 @@ import Transactions from './src/screens/Transaction';
 import theme from './src/theme';
 import codePush from 'react-native-code-push';
 import CashWithdrawal from './src/screens/CashWithdrawal';
+import SelectBank from './src/screens/SelectBank';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +27,13 @@ function App() {
               />
               <Stack.Screen name="Authenticate" component={Authenticate} />
               <Stack.Screen name="Transactions" component={Transactions} />
+              <Stack.Screen
+                name="SelectBank"
+                component={SelectBank}
+                options={{
+                  title: 'Select Bank',
+                }}
+              />
               <Stack.Screen
                 name="CashWithdrawal"
                 component={CashWithdrawal}

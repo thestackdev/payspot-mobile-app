@@ -25,6 +25,10 @@ export default function CashWithdrawal({navigation, route}: Props) {
   const {setShowWithdrawModal, setWithdrawMessage} = useCashwithdralStore(
     state => state,
   );
+  const [location, setLocation] = useState({
+    latitude: 0,
+    longitude: 0,
+  });
 
   const {amount, aadhar, mobile, bank, selectedDevice} = route.params;
 
@@ -40,6 +44,12 @@ export default function CashWithdrawal({navigation, route}: Props) {
       async position => {
         try {
           setLoading(true);
+
+          setLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+
           const merchantAuthFingerPrint = await RDServices.getFingerPrint(
             selectedDevice,
           );
@@ -111,85 +121,73 @@ export default function CashWithdrawal({navigation, route}: Props) {
       error => {
         setShowErrorModal(true);
         setErrorMessage({
-          title: 'Location Permission Required',
-          message: 'Please enable location permission to continue',
+          title: 'Failed to get location',
+          message: error.message || 'Please enable location permission',
         });
       },
     );
   }
 
   async function captureFingerPrint() {
-    Geolocation.getCurrentPosition(
-      async position => {
-        try {
-          setLoading(true);
+    try {
+      setLoading(true);
 
-          const userAuthFingerPrint = await RDServices.getFingerPrint(
-            selectedDevice,
-          );
+      const userAuthFingerPrint = await RDServices.getFingerPrint(
+        selectedDevice,
+      );
 
-          if (userAuthFingerPrint.status === 'SUCCESS') {
-            const data = new FormData();
-            data.append('transactionType', 'cashwithdraw');
-            data.append('amount', amount);
-            data.append('auth_reference_no', merchantRefNo);
-            data.append('responseXML', userAuthFingerPrint.message);
-            data.append('aadhar_number', aadhar);
-            data.append('latitude', position.coords.latitude.toString());
-            data.append('longitude', position.coords.longitude.toString());
-            data.append('bank', bank);
-            data.append('mobile_number', mobile);
+      if (userAuthFingerPrint.status === 'SUCCESS') {
+        const data = new FormData();
+        data.append('transactionType', 'cashwithdraw');
+        data.append('amount', amount);
+        data.append('auth_reference_no', merchantRefNo);
+        data.append('responseXML', userAuthFingerPrint.message);
+        data.append('aadhar_number', aadhar);
+        data.append('latitude', location.latitude.toString());
+        data.append('longitude', location.longitude.toString());
+        data.append('bank', bank);
+        data.append('mobile_number', mobile);
 
-            const response = await axios.post(
-              `${BASE_URL}/aeps/merchant_credopay_transaction2`,
-              data,
-              {headers: {Cookie: `payspot_session=${session}`}},
-            );
+        const response = await axios.post(
+          `${BASE_URL}/aeps/merchant_credopay_transaction2`,
+          data,
+          {headers: {Cookie: `payspot_session=${session}`}},
+        );
 
-            setWithdrawMessage(response.data[0]);
-            setShowWithdrawModal(true);
-            navigation.pop();
-          } else if (userAuthFingerPrint.status === 'FAILURE') {
-            setShowErrorModal(true);
-            setErrorMessage({
-              title: 'Failed to capture User fingerprint',
-              message: userAuthFingerPrint.message,
-            });
-          } else {
-            setShowErrorModal(true);
-            setErrorMessage({
-              title: 'Finger Print Capture Failed',
-              message: JSON.stringify(userAuthFingerPrint),
-            });
-          }
-        } catch (error) {
-          const e = error as any;
-
-          setShowErrorModal(true);
-
-          if (e.response) {
-            setErrorMessage({
-              title: 'Transaction Failed',
-              message: e.response?.data?.error || 'Something went wrong',
-            });
-          } else {
-            setErrorMessage({
-              title: 'Transaction Failed',
-              message: 'Please try again later',
-            });
-          }
-        }
-        setLoading(false);
-      },
-      error => {
+        setWithdrawMessage(response.data[0]);
+        setShowWithdrawModal(true);
+        navigation.pop();
+      } else if (userAuthFingerPrint.status === 'FAILURE') {
         setShowErrorModal(true);
         setErrorMessage({
-          title: 'Location Permission Required',
-          message: 'Please enable location permission to continue',
+          title: 'Failed to capture User fingerprint',
+          message: userAuthFingerPrint.message,
         });
-      },
-      {enableHighAccuracy: true},
-    );
+      } else {
+        setShowErrorModal(true);
+        setErrorMessage({
+          title: 'Finger Print Capture Failed',
+          message: JSON.stringify(userAuthFingerPrint),
+        });
+      }
+    } catch (error) {
+      const e = error as any;
+
+      setShowErrorModal(true);
+
+      if (e.response) {
+        setErrorMessage({
+          title: 'Transaction Failed',
+          message: e.response?.data?.error || 'Something went wrong',
+        });
+      } else {
+        setErrorMessage({
+          title: 'Transaction Failed',
+          message: 'Please try again later',
+        });
+      }
+    }
+    setLoading(false);
   }
 
   function handleSubmit() {
@@ -209,14 +207,8 @@ export default function CashWithdrawal({navigation, route}: Props) {
         backgroundColor: 'white',
         padding: 20,
       }}>
-      <View
-        style={{
-          width: '100%',
-        }}>
-        <View
-          style={{
-            width: '100%',
-          }}>
+      <View style={{width: '100%'}}>
+        <View style={{width: '100%'}}>
           <Text style={{color: 'black'}} variant="titleLarge">
             {step === 1 ? 'Merchant Authentication' : 'User Authentication'}
           </Text>
