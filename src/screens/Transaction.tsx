@@ -32,8 +32,6 @@ export default function Transactions({navigation}: Props) {
   const [paymentType, setPaymentType] = useState('cashwithdrawal');
   const [aadhar, setAadhar] = useState('');
   const [customerMobile, setCustomerMobile] = useState('');
-  const [bank, setBank] = useState(null);
-
   const [amount, setAmount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const session = useSessionStore(state => state.session);
@@ -124,7 +122,7 @@ export default function Transactions({navigation}: Props) {
   }
 
   function validateBank() {
-    if (!bank) {
+    if (!selectedBank) {
       setShowErrorModal(true);
       setErrorMessage({
         title: 'Bank Not Selected',
@@ -132,7 +130,7 @@ export default function Transactions({navigation}: Props) {
       });
     }
 
-    return bank;
+    return selectedBank;
   }
 
   function valideAmount() {
@@ -197,7 +195,7 @@ export default function Transactions({navigation}: Props) {
             data.append('aadhar_number', aadhar);
             data.append('latitude', position.coords.latitude.toString());
             data.append('longitude', position.coords.longitude.toString());
-            data.append('bank', bank);
+            data.append('bank', selectedBank);
             data.append('mobile_number', customerMobile);
             data.append('responseXML', merchantAuthFingerPrint.message);
 
@@ -249,7 +247,6 @@ export default function Transactions({navigation}: Props) {
           message: 'Please enable location permission to continue',
         });
       },
-      {enableHighAccuracy: true},
     );
   }
 
@@ -272,7 +269,7 @@ export default function Transactions({navigation}: Props) {
             data.append('aadhar_number', aadhar);
             data.append('latitude', position.coords.latitude.toString());
             data.append('longitude', position.coords.longitude.toString());
-            data.append('bank', bank);
+            data.append('bank', selectedBank);
             data.append('mobile_number', customerMobile);
             data.append('responseXML', merchantAuthFingerPrint.message);
 
@@ -326,12 +323,12 @@ export default function Transactions({navigation}: Props) {
           message: 'Please enable location permission to continue',
         });
       },
-      {enableHighAccuracy: true},
     );
   }
 
   function submit() {
     Keyboard.dismiss();
+
     if (paymentType === 'cashwithdrawal') {
       cashWithdrawal();
     } else if (paymentType === 'balanceenquiry') {
@@ -525,7 +522,11 @@ export default function Transactions({navigation}: Props) {
             <TextInput
               value={amount}
               keyboardType="numeric"
-              onChangeText={text => setAmount(text)}
+              onChangeText={text => {
+                if (!loading) {
+                  setAmount(Number(text));
+                }
+              }}
               underlineColor="transparent"
               activeUnderlineColor="transparent"
               placeholder="Enter amount"
@@ -538,7 +539,6 @@ export default function Transactions({navigation}: Props) {
                 borderWidth: 0.7,
                 borderRadius: 4,
               }}
-              disabled={loading}
               maxLength={5}
             />
           </View>
