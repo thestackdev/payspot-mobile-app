@@ -32,7 +32,7 @@ export default function Transactions({navigation}: Props) {
   const [paymentType, setPaymentType] = useState('cashwithdrawal');
   const [aadhar, setAadhar] = useState('');
   const [customerMobile, setCustomerMobile] = useState('');
-  const [amount, setAmount] = useState<number | null>(null);
+  const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const session = useSessionStore(state => state.session);
   const aadharRegex = /^\d{12}$/;
@@ -90,7 +90,8 @@ export default function Transactions({navigation}: Props) {
   function reset() {
     setAadhar('');
     setCustomerMobile('');
-    setAmount(null);
+    setAmount('');
+    setSelectedBank(null);
   }
 
   function valideAadhar() {
@@ -329,6 +330,9 @@ export default function Transactions({navigation}: Props) {
   function submit() {
     Keyboard.dismiss();
 
+    reset();
+    return;
+
     if (paymentType === 'cashwithdrawal') {
       cashWithdrawal();
     } else if (paymentType === 'balanceenquiry') {
@@ -520,6 +524,7 @@ export default function Transactions({navigation}: Props) {
               <Text style={{color: 'red'}}> *</Text>
             </Text>
             <TextInput
+              // @ts-ignore
               value={amount}
               keyboardType="numeric"
               onChangeText={text => {

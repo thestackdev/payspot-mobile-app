@@ -2,7 +2,7 @@ import {create} from 'zustand';
 
 interface SelectBankStore {
   selectedBank: number | null;
-  setSelectedBank: (bank: number) => void;
+  setSelectedBank: (bank: number | null) => void;
 }
 
 const useSelectBankStore = create<SelectBankStore>(set => ({

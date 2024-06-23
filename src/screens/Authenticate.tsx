@@ -55,7 +55,7 @@ export default function Authenticate({navigation}: Props) {
             );
 
             if (response.data.response_code === '00') {
-              navigation.push('Transactions');
+              navigation.replace('Transactions');
             } else {
               setShowErrorModal(true);
               setErrorMessage({

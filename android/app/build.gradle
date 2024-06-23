@@ -52,7 +52,7 @@ react {
     // hermesFlags = ["-O", "-output-source-map"]
 }
 
-def enableSeparateBuildPerCPUArchitecture = false
+def enableSeparateBuildPerCPUArchitecture = true
 def enableProguardInReleaseBuilds = true
 def enableShrinkResources = true
 def jscFlavor = 'org.webkit:android-jsc:+'
@@ -72,8 +72,8 @@ android {
         applicationId "com.payspot"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "1.3"
+        versionCode 4
+        versionName "1.4"
     }
 
     splits {

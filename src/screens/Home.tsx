@@ -114,12 +114,6 @@ export default function HomeScreen({navigation, route}: Props) {
   }, []);
 
   useEffect(() => {
-    if (!isFocused) return;
-    const script = `window.location = ${BASE_URL};`;
-    WEBVIEW_REF.current?.injectJavaScript(script);
-  }, [isFocused]);
-
-  useEffect(() => {
     const handleBackButton = () => {
       if (WEBVIEW_REF.current && canGoBack) {
         WEBVIEW_REF.current.goBack();
