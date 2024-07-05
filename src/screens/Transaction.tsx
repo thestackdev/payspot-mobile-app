@@ -330,9 +330,6 @@ export default function Transactions({navigation}: Props) {
   function submit() {
     Keyboard.dismiss();
 
-    reset();
-    return;
-
     if (paymentType === 'cashwithdrawal') {
       cashWithdrawal();
     } else if (paymentType === 'balanceenquiry') {
