@@ -1,3 +1,4 @@
+import {useEffect, useRef} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import SelectDropdown from 'react-native-select-dropdown';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -12,6 +13,14 @@ export default function SelectBank({navigation, route}: Props) {
   const banksList =
     userMerchantStore(state => state.merchant?.banks_list) || [];
   const {setSelectedBank} = useSelectBankStore();
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (!inputRef.current) return;
+    setTimeout(() => {
+      inputRef.current?.openDropdown();
+    }, 25);
+  }, [inputRef.current]);
 
   return (
     <View style={{flex: 1, backgroundColor: '#fff', padding: 10}}>
@@ -29,6 +38,7 @@ export default function SelectBank({navigation, route}: Props) {
               title: bank.bankName,
               icon: 'bank',
             }))}
+            ref={inputRef}
             onSelect={(selectedItem, index) => {
               setSelectedBank(selectedItem.id);
               navigation.pop();

@@ -58,6 +58,7 @@ function App() {
                 name="SelectBank"
                 component={SelectBank}
                 options={{
+                  animation: 'none',
                   title: 'Select Bank',
                 }}
               />

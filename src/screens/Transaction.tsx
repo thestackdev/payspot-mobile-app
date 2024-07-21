@@ -299,8 +299,6 @@ export default function Transactions({navigation}: Props) {
         } catch (error) {
           const e = error as any;
 
-          navigation.pop();
-
           setShowErrorModal(true);
 
           if (e.response) {
