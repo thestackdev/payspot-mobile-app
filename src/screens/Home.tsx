@@ -27,6 +27,7 @@ export default function HomeScreen({navigation, route}: Props) {
   const {setSession} = useSessionStore(state => state);
   const WEBVIEW_REF = useRef<WebView>(null);
   const [canGoBack, setCanGoBack] = useState(false);
+  const [lastValidUrl, setLastValidUrl] = useState(BASE_URL);
 
   const {setErrorMessage, setShowErrorModal} = useModalStoreStore(
     state => state,
@@ -58,48 +59,51 @@ export default function HomeScreen({navigation, route}: Props) {
     }
   };
 
-  const onNavigationStateChange = async (navState: WebViewNavigation) => {
-    setCanGoBack(navState.canGoBack);
-    if (navState.loading === false) {
-      if (navState.url === `${BASE_URL}/transact`) {
-        try {
-          const respnse = await axios.get('/credopay/get_cred_data');
+  const handleTransactNavigation = async () => {
+    try {
+      const response = await axios.get('/credopay/get_cred_data');
+      setMerchant(response.data?.data);
+      const onboarded = response.data?.data?.onboarded;
 
-          setMerchant(respnse.data?.data);
-
-          const onboarded = respnse.data?.data?.onboarded;
-
-          if (onboarded.status === 0) {
-            Alert.alert(
-              'Onboarding',
-              'You are not allowed to finish this step',
-            );
-            return;
-          }
-
-          if (isTodayIST(onboarded.last_authenticated_at)) {
-            navigation.push('Transactions');
-          } else {
-            navigation.push('Authenticate');
-          }
-        } catch (error) {
-          const e = error as any;
-
-          setShowErrorModal(true);
-
-          if (e.response) {
-            setErrorMessage({
-              title: 'Something went wrong',
-              message: e.response?.data?.error || 'Please try again later',
-            });
-          } else {
-            setErrorMessage({
-              title: 'Something went wrong',
-              message: 'Please try again later',
-            });
-          }
-        }
+      if (onboarded.status === 0) {
+        Alert.alert('Onboarding', 'You are not allowed to finish this step');
+        return;
       }
+
+      if (isTodayIST(onboarded.last_authenticated_at)) {
+        navigation.push('Transactions');
+      } else {
+        navigation.push('Authenticate');
+      }
+    } catch (error) {
+      const e = error as any;
+      setShowErrorModal(true);
+      if (e.response) {
+        setErrorMessage({
+          title: 'Something went wrong',
+          message: e.response?.data?.error || 'Please try again later',
+        });
+      } else {
+        setErrorMessage({
+          title: 'Something went wrong',
+          message: 'Please try again later',
+        });
+      }
+    }
+  };
+
+  const onShouldStartLoadWithRequest = (event: WebViewNavigation) => {
+    if (event.url === `${BASE_URL}/transact`) {
+      handleTransactNavigation();
+      return false;
+    }
+    return true;
+  };
+
+  const onNavigationStateChange = (navState: WebViewNavigation) => {
+    setCanGoBack(navState.canGoBack);
+    if (!navState.url.includes('/transact')) {
+      setLastValidUrl(navState.url);
     }
   };
 
@@ -128,6 +132,16 @@ export default function HomeScreen({navigation, route}: Props) {
     };
   }, [canGoBack]);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (WEBVIEW_REF.current) {
+        WEBVIEW_REF.current.reload();
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   if (loading) return <Spinner />;
 
   return (
@@ -140,8 +154,9 @@ export default function HomeScreen({navigation, route}: Props) {
       <MiniStatementModal />
       <WebView
         ref={WEBVIEW_REF}
+        source={{uri: lastValidUrl}}
         onNavigationStateChange={onNavigationStateChange}
-        source={{uri: BASE_URL}}
+        onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         thirdPartyCookiesEnabled={true}
         injectedJavaScript={jsCode}
         onMessage={onMessage}
