@@ -11,6 +11,10 @@ export const RD_SERVICES = [
     label: 'Morpho',
     package: 'com.scl.rdservice',
   },
+  {
+    label: 'Morpho L1',
+    package: 'com.precision.pb510.rdservice',
+  },
 ];
 
 export const BASE_URL = 'https://payspot.co.in';

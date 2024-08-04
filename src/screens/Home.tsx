@@ -13,7 +13,6 @@ import CashWithdrawalModal from '../modals/cash-withdrawal';
 import BalanceEnquiryModal from '../modals/balance-enquiry';
 import MiniStatementModal from '../modals/mini-statement';
 import AuthFailed from '../modals/auth-failed';
-import {useIsFocused} from '@react-navigation/native';
 import AuthSuccess from '../modals/auth-success';
 import useModalStoreStore from '../store/useModalStore';
 import {BASE_URL} from '../utils/data';
@@ -28,7 +27,7 @@ export default function HomeScreen({navigation, route}: Props) {
   const {setSession} = useSessionStore(state => state);
   const WEBVIEW_REF = useRef<WebView>(null);
   const [canGoBack, setCanGoBack] = useState(false);
-  const isFocused = useIsFocused();
+
   const {setErrorMessage, setShowErrorModal} = useModalStoreStore(
     state => state,
   );

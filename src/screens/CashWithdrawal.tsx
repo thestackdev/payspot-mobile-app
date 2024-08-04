@@ -18,9 +18,9 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CashWithdrawal'>;
 export default function CashWithdrawal({navigation, route}: Props) {
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
-  const [checked, setChecked] = useState(false);
+  const [checked, setChecked] = useState(true);
   const session = useSessionStore(state => state.session);
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(2);
   const [merchantRefNo, setMerchantRefNo] = useState(null);
   const {setShowWithdrawModal, setWithdrawMessage} = useCashwithdralStore(
     state => state,
@@ -39,80 +39,151 @@ export default function CashWithdrawal({navigation, route}: Props) {
     setSuccessMessage,
   } = useModalStoreStore(state => state);
 
-  async function merchantAuthentication() {
+  // async function merchantAuthentication() {
+  //   Geolocation.getCurrentPosition(
+  //     async position => {
+  //       try {
+  //         setLoading(true);
+
+  //         setLocation({
+  //           latitude: position.coords.latitude,
+  //           longitude: position.coords.longitude,
+  //         });
+
+  //         const merchantAuthFingerPrint = await RDServices.getFingerPrint(
+  //           selectedDevice,
+  //         );
+
+  //         if (merchantAuthFingerPrint.status === 'SUCCESS') {
+  //           const data = new FormData();
+
+  //           data.append('latitude', position.coords.latitude.toString());
+  //           data.append('longitude', position.coords.longitude.toString());
+  //           data.append('responseXML', merchantAuthFingerPrint.message);
+
+  //           const merchantAuthResponse = await axios.post(
+  //             `${BASE_URL}/credopay/merchant_authentication2`,
+  //             data,
+  //             {headers: {Cookie: `payspot_session=${session}`}},
+  //           );
+
+  //           if (merchantAuthResponse.data.response_code !== '00') {
+  //             setShowErrorModal(true);
+  //             setErrorMessage({
+  //               title: 'Authentication Failed',
+  //               message:
+  //                 'Response Code: ' + merchantAuthResponse.data.response_code,
+  //             });
+  //             setLoading(false);
+  //             return;
+  //           }
+
+  //           setShowSuccessModal(true);
+  //           setSuccessMessage({
+  //             title: 'Merchant Authenticated',
+  //             message: 'Merchant has been authenticated successfully',
+  //           });
+
+  //           setMerchantRefNo(merchantAuthResponse.data.auth_reference_no);
+  //           setStep(2);
+  //         } else if (merchantAuthFingerPrint.status === 'FAILURE') {
+  //           setShowErrorModal(true);
+  //           setErrorMessage({
+  //             title: 'Failed to capture Merchant fingerprint',
+  //             message: merchantAuthFingerPrint.message,
+  //           });
+  //         } else {
+  //           setShowErrorModal(true);
+  //           setErrorMessage({
+  //             title: 'Finger Print Capture Failed',
+  //             message: JSON.stringify(merchantAuthFingerPrint),
+  //           });
+  //         }
+  //       } catch (error) {
+  //         const e = error as any;
+
+  //         setShowErrorModal(true);
+
+  //         if (e.response) {
+  //           setErrorMessage({
+  //             title: 'Authentication Failed',
+  //             message: e.response?.data?.error || 'Something went wrong',
+  //           });
+  //         } else {
+  //           setErrorMessage({
+  //             title: 'Authentication Failed',
+  //             message: 'An error occurred while authenticating.',
+  //           });
+  //         }
+  //       }
+  //       setLoading(false);
+  //     },
+  //     error => {
+  //       setShowErrorModal(true);
+  //       setErrorMessage({
+  //         title: 'Failed to get location',
+  //         message: error.message || 'Please enable location permission',
+  //       });
+  //     },
+  //   );
+  // }
+
+  async function captureFingerPrint() {
     Geolocation.getCurrentPosition(
       async position => {
         try {
           setLoading(true);
 
-          setLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-
-          const merchantAuthFingerPrint = await RDServices.getFingerPrint(
+          const userAuthFingerPrint = await RDServices.getFingerPrint(
             selectedDevice,
           );
 
-          if (merchantAuthFingerPrint.status === 'SUCCESS') {
+          if (userAuthFingerPrint.status === 'SUCCESS') {
             const data = new FormData();
-
+            data.append('transactionType', 'cashwithdraw');
+            data.append('amount', amount);
+            data.append('auth_reference_no', merchantRefNo);
+            data.append('responseXML', userAuthFingerPrint.message);
+            data.append('aadhar_number', aadhar);
             data.append('latitude', position.coords.latitude.toString());
             data.append('longitude', position.coords.longitude.toString());
-            data.append('responseXML', merchantAuthFingerPrint.message);
+            data.append('bank', bank);
+            data.append('mobile_number', mobile);
 
-            const merchantAuthResponse = await axios.post(
-              `${BASE_URL}/credopay/merchant_authentication2`,
+            const response = await axios.post(
+              `${BASE_URL}/aeps/merchant_credopay_transaction2`,
               data,
               {headers: {Cookie: `payspot_session=${session}`}},
             );
 
-            if (merchantAuthResponse.data.response_code !== '00') {
-              setShowErrorModal(true);
-              setErrorMessage({
-                title: 'Authentication Failed',
-                message:
-                  'Response Code: ' + merchantAuthResponse.data.response_code,
-              });
-              setLoading(false);
-              return;
-            }
-
-            setShowSuccessModal(true);
-            setSuccessMessage({
-              title: 'Merchant Authenticated',
-              message: 'Merchant has been authenticated successfully',
-            });
-
-            setMerchantRefNo(merchantAuthResponse.data.auth_reference_no);
-            setStep(2);
-          } else if (merchantAuthFingerPrint.status === 'FAILURE') {
+            setWithdrawMessage(response.data[0]);
+            setShowWithdrawModal(true);
+            navigation.pop();
+          } else if (userAuthFingerPrint.status === 'FAILURE') {
             setShowErrorModal(true);
             setErrorMessage({
-              title: 'Failed to capture Merchant fingerprint',
-              message: merchantAuthFingerPrint.message,
+              title: 'Failed to capture User fingerprint',
+              message: userAuthFingerPrint.message,
             });
           } else {
             setShowErrorModal(true);
             setErrorMessage({
               title: 'Finger Print Capture Failed',
-              message: JSON.stringify(merchantAuthFingerPrint),
+              message: JSON.stringify(userAuthFingerPrint),
             });
           }
         } catch (error) {
           const e = error as any;
-
           setShowErrorModal(true);
-
           if (e.response) {
             setErrorMessage({
-              title: 'Authentication Failed',
+              title: 'Transaction Failed',
               message: e.response?.data?.error || 'Something went wrong',
             });
           } else {
             setErrorMessage({
-              title: 'Authentication Failed',
-              message: 'An error occurred while authenticating.',
+              title: 'Transaction Failed',
+              message: 'Please try again later',
             });
           }
         }
@@ -128,74 +199,12 @@ export default function CashWithdrawal({navigation, route}: Props) {
     );
   }
 
-  async function captureFingerPrint() {
-    try {
-      setLoading(true);
-
-      const userAuthFingerPrint = await RDServices.getFingerPrint(
-        selectedDevice,
-      );
-
-      if (userAuthFingerPrint.status === 'SUCCESS') {
-        const data = new FormData();
-        data.append('transactionType', 'cashwithdraw');
-        data.append('amount', amount);
-        data.append('auth_reference_no', merchantRefNo);
-        data.append('responseXML', userAuthFingerPrint.message);
-        data.append('aadhar_number', aadhar);
-        data.append('latitude', location.latitude.toString());
-        data.append('longitude', location.longitude.toString());
-        data.append('bank', bank);
-        data.append('mobile_number', mobile);
-
-        const response = await axios.post(
-          `${BASE_URL}/aeps/merchant_credopay_transaction2`,
-          data,
-          {headers: {Cookie: `payspot_session=${session}`}},
-        );
-
-        setWithdrawMessage(response.data[0]);
-        setShowWithdrawModal(true);
-        navigation.pop();
-      } else if (userAuthFingerPrint.status === 'FAILURE') {
-        setShowErrorModal(true);
-        setErrorMessage({
-          title: 'Failed to capture User fingerprint',
-          message: userAuthFingerPrint.message,
-        });
-      } else {
-        setShowErrorModal(true);
-        setErrorMessage({
-          title: 'Finger Print Capture Failed',
-          message: JSON.stringify(userAuthFingerPrint),
-        });
-      }
-    } catch (error) {
-      const e = error as any;
-
-      setShowErrorModal(true);
-
-      if (e.response) {
-        setErrorMessage({
-          title: 'Transaction Failed',
-          message: e.response?.data?.error || 'Something went wrong',
-        });
-      } else {
-        setErrorMessage({
-          title: 'Transaction Failed',
-          message: 'Please try again later',
-        });
-      }
-    }
-    setLoading(false);
-  }
-
   function handleSubmit() {
-    if (step === 1) {
-      merchantAuthentication();
-    } else if (step === 2) {
-      captureFingerPrint();
-    }
+    // if (step === 1) {
+    //   merchantAuthentication();
+    // } else if (step === 2) {
+    captureFingerPrint();
+    // }
   }
 
   return (
@@ -210,7 +219,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
       <View style={{width: '100%'}}>
         <View style={{width: '100%'}}>
           <Text style={{color: 'black'}} variant="titleLarge">
-            {step === 1 ? 'Merchant Authentication' : 'User Authentication'}
+            Authentication
           </Text>
         </View>
       </View>
