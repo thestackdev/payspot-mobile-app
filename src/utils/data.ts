@@ -13,7 +13,7 @@ export const RD_SERVICES = [
   },
   {
     label: 'Morpho L1',
-    package: 'com.precision.pb510.rdservice',
+    package: 'com.idemia.l1rdservice',
   },
 ];
 

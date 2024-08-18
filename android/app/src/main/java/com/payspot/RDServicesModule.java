@@ -118,6 +118,8 @@ public class RDServicesModule extends ReactContextBaseJavaModule {
       intent.setPackage("com.scl.rdservice");
     } else if (PckName.equalsIgnoreCase("com.mantra.rdservice")) {
       intent.setPackage("com.mantra.rdservice");
+    } else if (PckName.equalsIgnoreCase("com.idemia.l1rdservice")) {
+      intent.setPackage("com.idemia.l1rdservice");
     } else if (PckName.equalsIgnoreCase("com.mantra.mfs110.rdservice")) {
       intent.setPackage("com.mantra.mfs110.rdservice");
     } else if (
