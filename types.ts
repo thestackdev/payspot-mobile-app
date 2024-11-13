@@ -16,4 +16,5 @@ export type RootStackParamList = {
     data: any;
   };
   SelectBank: undefined;
+  KYCAuth: undefined;
 };

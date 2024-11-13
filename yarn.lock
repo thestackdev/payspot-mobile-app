@@ -6250,6 +6250,11 @@ react-native-paper@^5.11.1:
     color "^3.1.2"
     use-latest-callback "^0.1.5"
 
+react-native-pure-jwt@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/react-native-pure-jwt/-/react-native-pure-jwt-3.0.2.tgz#ad6fca13467fb6ac562a3e2900aa7830c61e0160"
+  integrity sha512-TbZ9JLCC33Ew2ENjovlDTFnNR7evUu5yKF4X5vLO5uO8FMMnBxS0mOUuUtAzlNPZ+tJQOKEoCyo43Hs1pTy+hA==
+
 react-native-safe-area-context@^4.7.4:
   version "4.7.4"
   resolved "https://registry.yarnpkg.com/react-native-safe-area-context/-/react-native-safe-area-context-4.7.4.tgz#3dd8438971e70043d76f2428ede75b8a9639265e"

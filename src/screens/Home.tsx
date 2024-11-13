@@ -92,11 +92,21 @@ export default function HomeScreen({navigation, route}: Props) {
     }
   };
 
+  const handlekycNavigation = () => {
+    navigation.push('KYCAuth');
+  };
+
   const onShouldStartLoadWithRequest = (event: WebViewNavigation) => {
+    if (event.url.includes('/dmt_kyc') && !event.url.includes('success=true')) {
+      handlekycNavigation();
+      return false;
+    }
+
     if (event.url === `${BASE_URL}/transact`) {
       handleTransactNavigation();
       return false;
     }
+
     return true;
   };
 
@@ -141,6 +151,12 @@ export default function HomeScreen({navigation, route}: Props) {
 
     return unsubscribe;
   }, [navigation]);
+
+  useEffect(() => {
+    if (route.params?.webViewUrl) {
+      setLastValidUrl(route.params.webViewUrl);
+    }
+  }, [route.params]);
 
   if (loading) return <Spinner />;
 

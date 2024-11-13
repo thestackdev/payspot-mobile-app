@@ -12,6 +12,7 @@ import CashWithdrawal from './src/screens/CashWithdrawal';
 import SelectBank from './src/screens/SelectBank';
 import {Linking} from 'react-native';
 import VersionCheck from 'react-native-version-check';
+import KYCAuth from './src/screens/KYCAuth';
 
 const Stack = createNativeStackNavigator();
 
@@ -61,6 +62,11 @@ function App() {
                   animation: 'none',
                   title: 'Select Bank',
                 }}
+              />
+              <Stack.Screen
+                name="KYCAuth"
+                component={KYCAuth}
+                options={{title: 'KYC Verification'}}
               />
               <Stack.Screen
                 name="CashWithdrawal"
