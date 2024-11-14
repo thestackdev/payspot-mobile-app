@@ -97,7 +97,7 @@ export default function HomeScreen({navigation, route}: Props) {
   };
 
   const onShouldStartLoadWithRequest = (event: WebViewNavigation) => {
-    if (event.url.includes('/dmt_kyc') && !event.url.includes('success=true')) {
+    if (event.url.includes('/dmt_kyc') && !event.url.includes('mobile')) {
       handlekycNavigation();
       return false;
     }

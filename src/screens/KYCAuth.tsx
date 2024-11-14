@@ -2,7 +2,6 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../types';
 import {View, NativeModules, Alert, StyleSheet} from 'react-native';
 import {Button, TextInput, Text} from 'react-native-paper';
-import {sign} from 'react-native-pure-jwt';
 import {useState} from 'react';
 import axios from 'axios';
 import {BASE_URL} from '../utils/data';
@@ -10,19 +9,6 @@ import {BASE_URL} from '../utils/data';
 const {EkycModule} = NativeModules;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'KYCAuth'>;
-
-const jwtSecret =
-  'UFMwMDM5MjFhZTUzZTU5M2VlZTU1MTViZWVkYTVkMmEyZjk4NjdjNDE2ODQxMjk0MzY=';
-const partner = 'PS003921';
-const merchantCode = 'prod0004';
-
-const axiosInstance = axios.create({
-  baseURL: 'https://api.paysprint.in',
-  headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  },
-});
 
 export default function KYCAuth({navigation, route}: Props) {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -46,49 +32,34 @@ export default function KYCAuth({navigation, route}: Props) {
       return;
     }
 
-    const currentTimestamp = Date.now();
-    const payload = {
-      timestamp: currentTimestamp,
-      partnerId: partner,
-      reqid: currentTimestamp,
-    };
-
     try {
-      const jwtToken = await sign(payload, jwtSecret, {alg: 'HS256'});
+      const response = await axios.post('/api/authencticate-remitter', {
+        mobile: phoneNumber,
+      });
 
-      console.log('JWT Token:', jwtToken);
+      setLoading(false);
 
-      const response = await axiosInstance.post(
-        '/api/v1/service/wallet-money/remitter/queryremitter/index',
-        {
-          merchant_code: merchantCode,
-          ekyc_redirect_url: `${BASE_URL}/dmt_kyc`,
-          mobile: phoneNumber,
-        },
-        {
-          headers: {Token: jwtToken},
-        },
-      );
+      const status = response.data.data?.response_code;
 
-      const status = response.data.status;
-
-      if (!status) {
-        const result = await EkycModule.startEkyc(response.data.token);
-        Alert.alert(
-          'KYC Result',
-          `Status: ${result.status}\nMessage: ${result.message}`,
-        );
+      if (status === 0 || status === 2) {
+        const result = await EkycModule.startEkyc(response.data.data?.token);
+        if (result.status === 'Success') {
+          navigation.navigate('Home', {
+            webViewUrl: `${BASE_URL}/dmt_kyc?mobile=${phoneNumber}`,
+            timestamp: Date.now(),
+          });
+        } else {
+          Alert.alert('Error', result.message);
+        }
       } else {
         navigation.navigate('Home', {
-          webViewUrl: `${BASE_URL}/dmt_kyc?success=true`,
+          webViewUrl: `${BASE_URL}/dmt_kyc?mobile=${phoneNumber}`,
           timestamp: Date.now(),
         });
       }
     } catch (error) {
       setError('Something went wrong. Please try again.');
       console.error('API Error:', error.response.data);
-    } finally {
-      setLoading(false);
     }
   }
 
