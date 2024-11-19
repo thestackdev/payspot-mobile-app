@@ -136,6 +136,7 @@ export default function CashWithdrawal({navigation, route}: Props) {
 
           const userAuthFingerPrint = await RDServices.getFingerPrint(
             selectedDevice,
+            true,
           );
 
           if (userAuthFingerPrint.status === 'SUCCESS') {

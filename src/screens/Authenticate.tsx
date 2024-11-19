@@ -37,7 +37,10 @@ export default function Authenticate({navigation}: Props) {
     Geolocation.getCurrentPosition(
       async position => {
         setLoading(true);
-        const captureResponse = await RDServices.getFingerPrint(selectedDevice);
+        const captureResponse = await RDServices.getFingerPrint(
+          selectedDevice,
+          true,
+        );
 
         if (captureResponse.status === 'SUCCESS') {
           try {

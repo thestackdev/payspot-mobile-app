@@ -1,6 +1,6 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useEffect, useState} from 'react';
-import {ScrollView, StyleSheet, View, NativeModules} from 'react-native';
+import {ScrollView, StyleSheet, View, NativeModules, Alert} from 'react-native';
 import MaskInput from 'react-native-mask-input';
 import {Button, RadioButton, Text, TextInput} from 'react-native-paper';
 import {RootStackParamList} from '../../../types';
@@ -12,7 +12,7 @@ import useSessionStore from '../../store/useSessionStore';
 import axios from 'axios';
 import useModalStoreStore from '../../store/useModalStore';
 
-const {RDServicesDMT} = NativeModules;
+const {RDServices} = NativeModules;
 
 type Props = NativeStackScreenProps<
   RootStackParamList,
@@ -106,8 +106,9 @@ export default function DomesticMoneyTransfer({navigation, route}: Props) {
     Geolocation.getCurrentPosition(
       async position => {
         setLoading(true);
-        const captureResponse = await RDServicesDMT.getFingerPrintForDMT(
+        const captureResponse = await RDServices.getFingerPrint(
           selectedDevice,
+          false,
         );
 
         if (captureResponse.status === 'SUCCESS') {

@@ -188,6 +188,7 @@ export default function Transactions({navigation}: Props) {
 
           const merchantAuthFingerPrint = await RDServices.getFingerPrint(
             selectedDevice,
+            true,
           );
 
           if (merchantAuthFingerPrint.status === 'SUCCESS') {
@@ -262,6 +263,7 @@ export default function Transactions({navigation}: Props) {
         try {
           const merchantAuthFingerPrint = await RDServices.getFingerPrint(
             selectedDevice,
+            true,
           );
 
           if (merchantAuthFingerPrint.status === 'SUCCESS') {

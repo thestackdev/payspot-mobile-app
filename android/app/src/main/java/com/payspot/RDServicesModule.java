@@ -25,6 +25,7 @@ public class RDServicesModule extends ReactContextBaseJavaModule {
   private final String FAILURE = "FAILURE";
   private String PckName = "";
   private Promise promise;
+  private boolean useRegularPid = false;
 
   private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
     @Override
@@ -60,7 +61,6 @@ public class RDServicesModule extends ReactContextBaseJavaModule {
       }
 
       if (requestCode == RDCAPTURE_CODE) {
-
         if (data == null) {
           resolve(FAILURE, "Device not ready");
           return;
@@ -87,6 +87,7 @@ public class RDServicesModule extends ReactContextBaseJavaModule {
   }
 
   @NonNull
+  @Override
   public String getName() {
     return NAME;
   }
@@ -97,9 +98,11 @@ public class RDServicesModule extends ReactContextBaseJavaModule {
       intent.setAction("in.gov.uidai.rdservice.fp.INFO");
       Activity currentActivity = getCurrentActivity();
 
-
-      currentActivity.startActivityForResult(intent, RDINFO_CODE);
-
+      if (currentActivity != null) {
+        currentActivity.startActivityForResult(intent, RDINFO_CODE);
+      } else {
+        resolve(FAILURE, "Current activity is null");
+      }
     } catch (Exception e) {
       e.printStackTrace();
       resolve(FAILURE, "RD services not available");
@@ -107,12 +110,16 @@ public class RDServicesModule extends ReactContextBaseJavaModule {
   }
 
   private void captureData() {
-    String pidOption =
-      "<?xml version='1.0'?><PidOptions ver='1.0'><Opts fCount='1' fType='2' iCount='0' pCount='0' format='0' pidVer='2.0' timeout='10000' posh='UNKNOWN' env='P' /><CustOpts></CustOpts></PidOptions>";
+    String pidOption;
+    if (useRegularPid) {
+      pidOption = "<?xml version='1.0'?><PidOptions ver='1.0'><Opts fCount='1' fType='2' iCount='0' pCount='0' format='0' pidVer='2.0' timeout='10000' posh='UNKNOWN' env='P' /><CustOpts></CustOpts></PidOptions>";
+    } else {
+      pidOption = "<?xml version='1.0'?><PidOptions ver='1.0'><Opts fCount='1' fType='2' iCount='0' pCount='0' format='0' pidVer='2.0' timeout='10000' wadh='18f4CEiXeXcfGXvgWA/blxD+w2pw7hfQPY45JMytkPw=' posh='UNKNOWN' env='P' /><CustOpts></CustOpts></PidOptions>";
+    }
+
     Intent intent = new Intent();
     intent.setAction("in.gov.uidai.rdservice.fp.CAPTURE");
     intent.putExtra("PID_OPTIONS", pidOption);
-
 
     if (PckName.equalsIgnoreCase("com.scl.rdservice")) {
       intent.setPackage("com.scl.rdservice");
@@ -122,45 +129,44 @@ public class RDServicesModule extends ReactContextBaseJavaModule {
       intent.setPackage("com.idemia.l1rdservice");
     } else if (PckName.equalsIgnoreCase("com.mantra.mfs110.rdservice")) {
       intent.setPackage("com.mantra.mfs110.rdservice");
-    } else if (
-      PckName.equalsIgnoreCase("com.precision.pb510.rdservice")
-    ) {
+    } else if (PckName.equalsIgnoreCase("com.precision.pb510.rdservice")) {
       intent.setPackage("com.precision.pb510.rdservice");
     } else if (PckName.equalsIgnoreCase("com.secugen.rdservice")) {
       intent.setPackage("com.secugen.rdservice");
     } else if (PckName.equalsIgnoreCase("com.acpl.registersdk")) {
       intent.setPackage("com.acpl.registersdk");
-    } else if (
-      PckName.equalsIgnoreCase("co.aratek.asix_gms.rdservice")
-    ) {
+    } else if (PckName.equalsIgnoreCase("co.aratek.asix_gms.rdservice")) {
       intent.setPackage("co.aratek.asix_gms.rdservice");
     } else {
       resolve(FAILURE, "RD services Package not found");
+      return;
     }
 
     Activity currentActivity = getCurrentActivity();
     try {
-      currentActivity.startActivityForResult(intent, RDCAPTURE_CODE);
+      if (currentActivity != null) {
+        currentActivity.startActivityForResult(intent, RDCAPTURE_CODE);
+      } else {
+        resolve(FAILURE, "Current activity is null");
+      }
     } catch (Exception e) {
       e.printStackTrace();
       resolve(FAILURE, "Selected device not found");
     }
   }
 
-
   @ReactMethod
-  public void getFingerPrint(String deviceName, Promise prm) {
+  public void getFingerPrint(String deviceName, boolean useRegularPid, Promise prm) {
     try {
-
       promise = prm;
       PckName = deviceName;
+      this.useRegularPid = useRegularPid;
       deviceInfo();
     } catch (Exception e) {
       e.printStackTrace();
       resolve(FAILURE, "RD services not available");
     }
   }
-
 
   private String ParseBioMetricData(String bioxml) {
     bioxml = bioxml.replaceAll("\"", "'");
@@ -169,7 +175,6 @@ public class RDServicesModule extends ReactContextBaseJavaModule {
 
     return bioxml;
   }
-
 
   private void resolve(String status, String message) {
     if (promise == null) {
