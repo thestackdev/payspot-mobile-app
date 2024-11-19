@@ -92,13 +92,14 @@ export default function HomeScreen({navigation, route}: Props) {
     }
   };
 
-  const handlekycNavigation = () => {
-    navigation.push('KYCAuth');
-  };
-
   const onShouldStartLoadWithRequest = (event: WebViewNavigation) => {
     if (event.url.includes('/dmt_kyc') && !event.url.includes('mobile')) {
-      handlekycNavigation();
+      navigation.push('KYCAuth');
+      return false;
+    }
+
+    if (event.url.includes('/dmt') && !event.url.includes('mobile')) {
+      navigation.push('CheckPhoneNumberForDMT');
       return false;
     }
 

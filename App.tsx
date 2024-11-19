@@ -13,6 +13,8 @@ import SelectBank from './src/screens/SelectBank';
 import {Linking} from 'react-native';
 import VersionCheck from 'react-native-version-check';
 import KYCAuth from './src/screens/KYCAuth';
+import DomesticMoneyTransfer from './src/screens/dmt/DomesticMoneyTransfer';
+import CheckPhoneNumberForDMT from './src/screens/dmt/CheckPhoneNumberForDMT';
 
 const Stack = createNativeStackNavigator();
 
@@ -73,6 +75,20 @@ function App() {
                 component={CashWithdrawal}
                 options={{
                   title: 'Cash Withdrawal',
+                }}
+              />
+              <Stack.Screen
+                name="CheckPhoneNumberForDMT"
+                component={CheckPhoneNumberForDMT}
+                options={{
+                  title: 'Check Phone Number For DMT',
+                }}
+              />
+              <Stack.Screen
+                name="DomesticMoneyTransfer"
+                component={DomesticMoneyTransfer}
+                options={{
+                  title: 'Domestic Money Transfer',
                 }}
               />
             </Stack.Navigator>
