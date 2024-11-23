@@ -37,7 +37,7 @@ export default function CheckPhoneNumberForDMT({navigation}: Props) {
       );
       if (response.data.data?.response_code === 2) {
         navigation.navigate('DomesticMoneyTransfer', {mobile: customerMobile});
-      } else if (response.data.data?.response_code === 1) {
+      } else {
         navigation.navigate('Home', {
           webViewUrl: `${BASE_URL}/dmt?mobile=${customerMobile}`,
           timestamp: Date.now(),
