@@ -27,8 +27,12 @@ android {
         applicationId "com.payspot"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 11
-        versionName "1.11"
+        versionCode 12
+        versionName "1.12"
+    }
+
+    buildFeatures {
+        viewBinding true
     }
 
     splits {
@@ -80,14 +84,8 @@ android {
 
 dependencies {
     implementation "com.airbnb.android:lottie:6.1.0"
-    implementation files('libs/sps_lib.aar')
-
-    // Retrofit dependencies
-    implementation "com.squareup.retrofit2:retrofit:2.9.0"
-    implementation "com.squareup.retrofit2:converter-gson:2.9.0"
-    implementation "com.squareup.retrofit2:converter-scalars:2.9.0"
-    implementation "com.squareup.okhttp3:okhttp:4.9.1"
-    implementation "com.squareup.okhttp3:logging-interceptor:4.9.1"
+    implementation files('libs/pspwDmt.aar')
+    implementation files('libs/pw_ekyc.aar')
 
     implementation("com.facebook.react:react-android")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.0.0")
