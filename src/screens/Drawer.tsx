@@ -1,202 +1,229 @@
 import React from 'react';
 import {createDrawerNavigator} from '@react-navigation/drawer';
-import {useTheme, Avatar} from 'react-native-paper';
-import AEPSScreen from './drawer-screens/AEPSScreen';
-import DMTScreen from './drawer-screens/DMTScreen';
-import HeaderAvatar from '../components/HeaderAvatar';
+import {useTheme, Avatar, List} from 'react-native-paper';
 import {DrawerContentScrollView, DrawerItem} from '@react-navigation/drawer';
 import {View, Text, StyleSheet} from 'react-native';
-import {List} from 'react-native-paper';
 import Webpage from './drawer-screens/Webpage';
+import AEPSScreen from './drawer-screens/AEPSScreen';
+import useSessionStore from '../store/useSessionStore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Drawer = createDrawerNavigator();
 
 function CustomDrawerContent(props) {
   const theme = useTheme();
+  const {user} = useSessionStore(state => state);
 
   const sidebarItems = [
     {
       name: 'Dashboard',
       url: '/home',
+      icon: 'view-dashboard',
     },
     {
       name: 'Services',
+      icon: 'widgets',
       children: [
         {
           name: 'Electricity Bills',
-          url: '',
+          url: '/home',
+          icon: 'flash',
         },
         {
           name: 'PPI Wallet',
-          url: '',
+          url: '/home',
+          icon: 'wallet',
         },
         {
           name: 'BBPS',
-          url: '',
+          url: '/home',
+          icon: 'bank',
         },
         {
           name: 'Mobile Recharge',
-          url: '',
+          url: '/home',
+          icon: 'cellphone',
         },
         {
           name: 'DTH',
-          url: '',
+          url: '/home',
+          icon: 'satellite-variant',
         },
         {
           name: 'Credit Card',
-          url: '',
+          url: '/home',
+          icon: 'credit-card',
         },
         {
           name: 'AEPS',
-          url: '',
+          url: '/home',
+          icon: 'fingerprint',
         },
         {
           name: 'LIC',
-          url: '',
+          url: '/home',
+          icon: 'lifebuoy',
         },
         {
           name: 'KYC Money Transfer',
-          url: '',
+          url: '/home',
+          icon: 'account-convert',
         },
         {
           name: 'Domestic Money Transfer',
-          url: '',
+          url: '/dmt',
+          icon: 'cash-multiple',
         },
         {
           name: 'CMS',
-          url: '',
+          url: '/home',
+          icon: 'chart-bar',
         },
       ],
     },
     {
       name: 'Dist Topup',
-      url: '',
+      url: '/home',
+      icon: 'cart',
     },
     {
       name: 'Reports',
+      icon: 'chart-line',
       children: [
         {
           name: 'Transactions',
-          url: '',
+          url: '/transactions',
+          icon: 'swap-horizontal',
         },
         {
           name: 'Ledger',
-          url: '',
+          url: '/ledger',
+          icon: 'book',
         },
         {
           name: 'AEPS Wallet Ledger',
-          url: '',
+          url: '/home',
+          icon: 'wallet',
         },
         {
           name: 'Overall Summary',
-          url: '',
+          url: '/home',
+          icon: 'chart-pie',
         },
         {
           name: 'Refund Pending',
-          url: '',
+          url: '/home',
+          icon: 'clock',
         },
       ],
     },
     {
       name: 'Link & Pay',
+      icon: 'link',
       children: [
         {
           name: 'Online Value Requests',
-          url: '',
+          url: '/home',
+          icon: 'link-variant',
         },
         {
           name: 'History Request Link',
-          url: '',
+          url: '/home',
+          icon: 'history',
         },
       ],
     },
     {
       name: 'Support',
-      url: '',
+      url: '/home',
+      icon: 'help-circle',
     },
     {
       name: 'Account',
-      url: '',
+      url: '/home',
+      icon: 'account',
     },
   ];
+
+  async function handleLogout() {
+    await AsyncStorage.clear();
+    props.navigation.reset({
+      index: 0,
+      routes: [{name: 'Login'}],
+    });
+  }
+
+  const handleNavigation = item => {
+    if (item.name === 'AEPS') {
+      props.navigation.navigate('AEPSScreen');
+    } else {
+      props.navigation.navigate('Webpage', {url: item.url, title: item.name});
+    }
+  };
+
+  const renderDrawerItem = (item, index) => {
+    if (item.children) {
+      return (
+        <List.Accordion
+          key={index}
+          title={item.name}
+          left={props => <List.Icon {...props} icon={item.icon} />}>
+          {item.children.map((child, childIndex) => (
+            <DrawerItem
+              key={childIndex}
+              label={child.name}
+              labelStyle={{fontSize: 14, marginLeft: -10}}
+              icon={({color}) => (
+                <List.Icon color={color} size={20} icon={child.icon} />
+              )}
+              onPress={() => handleNavigation(child)}
+            />
+          ))}
+        </List.Accordion>
+      );
+    } else {
+      return (
+        <DrawerItem
+          key={index}
+          label={item.name}
+          labelStyle={{fontSize: 14, marginLeft: -10}}
+          icon={({color}) => (
+            <List.Icon color={color} size={20} icon={item.icon} />
+          )}
+          onPress={() => handleNavigation(item)}
+        />
+      );
+    }
+  };
+
+  if (!user) return null;
 
   return (
     <DrawerContentScrollView
       {...props}
       style={{backgroundColor: theme.colors.background}}>
       <View style={styles.profileSection}>
-        <Avatar.Image
-          size={64}
-          source={{uri: 'https://example.com/user-avatar.png'}}
-        />
-        <Text style={[styles.username, {color: theme.colors.text}]}>
-          John Doe
+        <Avatar.Image size={64} source={{uri: user.avatar}} />
+        <Text style={[styles.username, {color: theme.colors.onSurface}]}>
+          {user.name}
         </Text>
-        <Text style={{color: theme.colors.text, fontSize: 12}}>
-          john.doe@example.com
+        <Text style={{color: theme.colors.onSurface, fontSize: 12}}>
+          ID: PR000{user.id}
+          {user.current_balance}
+        </Text>
+        <Text style={{color: theme.colors.onSurface, fontSize: 12}}>
+          Balance: {user.current_balance}
         </Text>
       </View>
       <View style={{padding: 12}}>
-        <Text style={styles.sectionTitle}>Services</Text>
-        <DrawerItem
-          label="Dashboard"
-          labelStyle={{fontSize: 14, marginLeft: -10}} // Adjusted marginLeft
-          icon={({color}) => (
-            <List.Icon color={color} size={20} icon="view-dashboard" /> // Reduced size
-          )}
-          onPress={() => props.navigation.navigate('Webpage', {url: '/home'})}
-        />
-        <DrawerItem
-          label="Ledger"
-          labelStyle={{fontSize: 14, marginLeft: -10}} // Adjusted marginLeft
-          icon={({color}) => (
-            <List.Icon color={color} size={20} icon="book" /> // Reduced size
-          )}
-          onPress={() => props.navigation.navigate('Webpage', {url: '/ledger'})}
-        />
-        <DrawerItem
-          label="AEPS"
-          labelStyle={{fontSize: 14, marginLeft: -10}} // Adjusted marginLeft
-          icon={({color}) => (
-            <List.Icon color={color} size={20} icon="fingerprint" /> // Reduced size
-          )}
-          onPress={() => props.navigation.navigate('AEPSScreen')}
-        />
-        <DrawerItem
-          label="Domestic Money Transfer"
-          labelStyle={{fontSize: 14, marginLeft: -10}} // Adjusted marginLeft
-          icon={({color}) => (
-            <List.Icon color={color} size={20} icon="cash-multiple" /> // Reduced size
-          )}
-          onPress={() => props.navigation.navigate('Webpage', {url: '/dmt'})}
-        />
-
-        <Text style={styles.sectionTitle}>Other</Text>
-        <DrawerItem
-          label="Settings"
-          labelStyle={{fontSize: 14, marginLeft: -10}} // Adjusted marginLeft
-          icon={({color}) => (
-            <List.Icon color={color} size={20} icon="cog" /> // Reduced size
-          )}
-          onPress={() => console.log('Navigate to Settings')}
-        />
-        <DrawerItem
-          label="Help & Support"
-          labelStyle={{fontSize: 14, marginLeft: -10}} // Adjusted marginLeft
-          icon={({color}) => (
-            <List.Icon color={color} size={20} icon="help-circle" /> // Reduced size
-          )}
-          onPress={() => console.log('Navigate to Help')}
-        />
+        {sidebarItems.map((item, index) => renderDrawerItem(item, index))}
       </View>
       <View style={styles.footer}>
         <DrawerItem
           label="Logout"
-          labelStyle={{fontSize: 14, marginLeft: -10}} // Adjusted marginLeft
-          icon={({color}) => (
-            <List.Icon color={color} icon="logout" /> // Reduced size
-          )}
-          onPress={() => console.log('Logout pressed')}
+          labelStyle={{fontSize: 14, marginLeft: -10}}
+          icon={({color}) => <List.Icon color={color} icon="logout" />}
+          onPress={handleLogout}
         />
         <Text
           style={{
@@ -218,35 +245,12 @@ export default function DrawerScreen() {
       <Drawer.Screen
         name="Webpage"
         component={Webpage}
-        options={{
-          title: 'Dashboard',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-          headerRight: () => <HeaderAvatar />,
-        }}
+        options={({route}) => ({title: route.params?.title || 'Dashboard'})}
       />
       <Drawer.Screen
         name="AEPSScreen"
         component={AEPSScreen}
-        options={{
-          title: 'AEPS',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-          headerRight: () => <HeaderAvatar />,
-        }}
-      />
-      <Drawer.Screen
-        name="DMTScreen"
-        component={DMTScreen}
-        options={{
-          title: 'DMT',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-          headerRight: () => <HeaderAvatar />,
-        }}
+        options={{title: 'AEPS'}}
       />
     </Drawer.Navigator>
   );

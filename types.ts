@@ -84,5 +84,5 @@ export type RootStackParamList = {
 
   AEPSScreen: undefined;
 
-  Webpage: {url: string};
+  Webpage: {url: string; title: string};
 };

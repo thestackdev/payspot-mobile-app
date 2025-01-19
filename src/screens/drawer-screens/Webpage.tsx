@@ -11,7 +11,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Webpage'>;
 const Webpage = ({navigation, route}: Props) => {
   const [isLoading, setIsLoading] = useState(true);
   const {session, token} = useSessionStore(state => state);
-  const url = route?.params?.url;
+  const {url = '/home', title = 'Dashboard'} = route.params || {};
 
   if (typeof BASE_URL !== 'string') {
     console.error('BASE_URL is not a string.');
@@ -26,8 +26,6 @@ const Webpage = ({navigation, route}: Props) => {
     console.error('Failed to extract hostname:', e);
     return null;
   }
-
-  console.log('url', url);
 
   return (
     <View style={{flex: 1}}>

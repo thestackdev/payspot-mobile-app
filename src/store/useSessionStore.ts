@@ -44,7 +44,6 @@ const useSessionStore = create<SessionStore>(set => ({
     });
     axios.defaults.baseURL = BASE_URL;
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    console.log(`Bearer ${token}`);
   },
 }));
 

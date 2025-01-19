@@ -27,8 +27,8 @@ android {
         applicationId "com.payspot"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 13
-        versionName "1.13"
+        versionCode 14
+        versionName "2.0"
     }
 
     buildFeatures {
