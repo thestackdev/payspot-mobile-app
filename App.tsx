@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import * as React from 'react';
@@ -10,29 +11,59 @@ import theme from './src/theme';
 import codePush from 'react-native-code-push';
 import CashWithdrawal from './src/screens/CashWithdrawal';
 import SelectBank from './src/screens/SelectBank';
-import {Linking} from 'react-native';
-import VersionCheck from 'react-native-version-check';
 import KYCAuth from './src/screens/KYCAuth';
 import DomesticMoneyTransfer from './src/screens/dmt/DomesticMoneyTransfer';
 import CheckPhoneNumberForDMT from './src/screens/dmt/CheckPhoneNumberForDMT';
+import Login from './src/screens/Login';
+import Otp from './src/screens/Otp';
+import useSessionStore from './src/store/useSessionStore';
+import Spinner from './src/components/Spinner';
+import DrawerScreen from './src/screens/Drawer';
 
 const Stack = createNativeStackNavigator();
 
 function App() {
+  const {sessionLoaded, loadSession, session, user} = useSessionStore(
+    state => state,
+  );
+  const [initialRouteName, setInitialRouteName] = React.useState('');
+
   React.useEffect(() => {
-    VersionCheck.needUpdate().then(async res => {
-      if (res.isNeeded) {
-        Linking.openURL(res.storeUrl);
-      }
-    });
-  }, []);
+    if (!sessionLoaded) loadSession();
+  }, [sessionLoaded]);
+
+  React.useEffect(() => {
+    if (sessionLoaded) {
+      if (session && user) setInitialRouteName('Dashboard');
+      else setInitialRouteName('Login');
+    }
+  }, [sessionLoaded]);
+
+  if (!sessionLoaded || !initialRouteName) {
+    return <Spinner />;
+  }
 
   return (
     <PaperProvider theme={theme}>
       <NavigationContainer>
         <SafeAreaProvider>
           <SafeAreaView style={{flex: 1}}>
-            <Stack.Navigator initialRouteName="Home">
+            <Stack.Navigator initialRouteName={initialRouteName}>
+              <Stack.Screen
+                name="DrawerScreen"
+                component={DrawerScreen}
+                options={{headerShown: false}}
+              />
+              <Stack.Screen
+                name="Login"
+                component={Login}
+                options={{headerShown: false}}
+              />
+              <Stack.Screen
+                name="OTP"
+                component={Otp}
+                options={{headerShown: false}}
+              />
               <Stack.Screen
                 name="Home"
                 component={HomeScreen}
@@ -99,10 +130,10 @@ function App() {
   );
 }
 
-export default codePush({
-  checkFrequency: codePush.CheckFrequency.ON_APP_RESUME,
-  installMode: codePush.InstallMode.IMMEDIATE,
-  updateDialog: true,
-  mandatoryInstallMode: codePush.InstallMode.IMMEDIATE,
-})(App);
-// export default App;
+// export default codePush({
+//   checkFrequency: codePush.CheckFrequency.ON_APP_RESUME,
+//   installMode: codePush.InstallMode.IMMEDIATE,
+//   updateDialog: true,
+//   mandatoryInstallMode: codePush.InstallMode.IMMEDIATE,
+// })(App);
+export default App;
