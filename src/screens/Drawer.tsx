@@ -36,7 +36,7 @@ function CustomDrawerContent(props) {
         },
         {
           name: 'BBPS',
-          url: '/home',
+          url: '/m_recharge',
           icon: 'bank',
         },
         {
@@ -209,10 +209,12 @@ function CustomDrawerContent(props) {
         </Text>
         <Text style={{color: theme.colors.onSurface, fontSize: 12}}>
           ID: PR000{user.id}
-          {user.current_balance}
         </Text>
         <Text style={{color: theme.colors.onSurface, fontSize: 12}}>
-          Balance: {user.current_balance}
+          Current Balance: ₹{user.current_balance}
+        </Text>
+        <Text style={{color: theme.colors.onSurface, fontSize: 12}}>
+          AEPS Wallet: ₹{user.last_credit_balance}
         </Text>
       </View>
       <View style={{padding: 12}}>

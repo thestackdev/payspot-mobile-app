@@ -20,6 +20,7 @@ export interface User {
   city: string;
   created_at: string;
   current_balance: number;
+  last_credit_balance: number;
   device_uuids: string;
   disable: number;
   dmt_registered: number;
