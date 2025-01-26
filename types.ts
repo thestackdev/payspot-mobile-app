@@ -16,7 +16,6 @@ export type RootStackParamList = {
     data: any;
   };
   SelectBank: undefined;
-  KYCAuth: undefined;
   CheckPhoneNumberForDMT: undefined;
   DomesticMoneyTransfer: {
     mobile: string;

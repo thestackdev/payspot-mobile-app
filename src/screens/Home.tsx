@@ -1,6 +1,13 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useEffect, useRef, useState} from 'react';
-import {BackHandler, StatusBar, StyleSheet, View, Alert} from 'react-native';
+import {
+  BackHandler,
+  StatusBar,
+  StyleSheet,
+  View,
+  Alert,
+  NativeModules,
+} from 'react-native';
 import {WebView, WebViewNavigation} from 'react-native-webview';
 import {RootStackParamList} from '../../types';
 import Spinner from '../components/Spinner';
@@ -18,6 +25,8 @@ import useModalStoreStore from '../store/useModalStore';
 import {BASE_URL} from '../utils/data';
 
 axios.defaults.baseURL = BASE_URL;
+
+const {EkycModule} = NativeModules;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -92,9 +101,39 @@ export default function HomeScreen({navigation, route}: Props) {
     }
   };
 
+  async function handlePPIWallet() {
+    let userId = null;
+    let token = null;
+    try {
+      const response = await axios.get('/user/auth');
+
+      if (response.data?.dmt_registered === 0) {
+        setLastValidUrl(`${BASE_URL}/pp_wallet_registration`);
+        return;
+      }
+
+      userId = response.data.id;
+
+      const jwtTokenResponse = await axios.get('/jwt_token');
+      token = jwtTokenResponse.data.token;
+    } catch (error) {
+      console.log(error);
+    }
+
+    if (token && userId) {
+      EkycModule.startEkyc('PS003921', token, `prod000${userId}`)
+        .then(response => {
+          console.log('DMT Response:', response);
+        })
+        .catch(error => {
+          console.error('DMT Error:', error);
+        });
+    }
+  }
+
   const onShouldStartLoadWithRequest = (event: WebViewNavigation) => {
-    if (event.url.includes('/dmt_kyc') && !event.url.includes('mobile')) {
-      navigation.push('KYCAuth');
+    if (event.url.includes('/ppi_wallet')) {
+      handlePPIWallet();
       return false;
     }
 

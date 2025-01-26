@@ -13,3 +13,8 @@
 -keep class it.services.pspwdmt.** { *; }
 -dontwarn it.services.pspwdmt.**
 
+
+#GSON
+-keep class com.google.gson.** { *; }
+-keep class sun.misc.Unsafe { *; }
+-keep class com.google.gson.stream.** { *; }

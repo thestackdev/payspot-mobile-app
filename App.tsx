@@ -1,7 +1,7 @@
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import * as React from 'react';
-import {Button, IconButton, PaperProvider} from 'react-native-paper';
+import {IconButton, PaperProvider} from 'react-native-paper';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import Authenticate from './src/screens/Authenticate';
 import HomeScreen from './src/screens/Home';
@@ -12,7 +12,6 @@ import CashWithdrawal from './src/screens/CashWithdrawal';
 import SelectBank from './src/screens/SelectBank';
 import {Linking} from 'react-native';
 import VersionCheck from 'react-native-version-check';
-import KYCAuth from './src/screens/KYCAuth';
 import DomesticMoneyTransfer from './src/screens/dmt/DomesticMoneyTransfer';
 import CheckPhoneNumberForDMT from './src/screens/dmt/CheckPhoneNumberForDMT';
 
@@ -66,11 +65,6 @@ function App() {
                 }}
               />
               <Stack.Screen
-                name="KYCAuth"
-                component={KYCAuth}
-                options={{title: 'KYC Verification'}}
-              />
-              <Stack.Screen
                 name="CashWithdrawal"
                 component={CashWithdrawal}
                 options={{
@@ -99,10 +93,10 @@ function App() {
   );
 }
 
-export default codePush({
-  checkFrequency: codePush.CheckFrequency.ON_APP_RESUME,
-  installMode: codePush.InstallMode.IMMEDIATE,
-  updateDialog: true,
-  mandatoryInstallMode: codePush.InstallMode.IMMEDIATE,
-})(App);
-// export default App;
+// export default codePush({
+//   checkFrequency: codePush.CheckFrequency.ON_APP_RESUME,
+//   installMode: codePush.InstallMode.IMMEDIATE,
+//   updateDialog: true,
+//   mandatoryInstallMode: codePush.InstallMode.IMMEDIATE,
+// })(App);
+export default App;
